@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --border: 214.3 31.8% 91.4%;
+    --radius: 0.5rem;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --primary-border: 214.3 31.8% 25.4%;
+    
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary-border: 214.3 31.8% 91.4%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --destructive-border: 0 84.2% 50.2%;
+    
+    --button-outline: hsl(214.3 31.8% 91.4%);
+    --ring: 222.2 84% 4.9%;
+  }
+
+  /* --- FIX START: Use standard CSS to stop the crash --- */
+  * {
+    border-color: hsl(var(--border));
+    border-width: 0; 
+    border-style: solid;
+  }
+  
+  /* Reset border width for elements that specifically need it */
+  input, button, textarea, select {
+     border-width: 1px;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Inter', sans-serif;
+  }
+  /* --- FIX END --- */
+}
+
+@layer utilities {
+  .hover-elevate {
+    transition: all 0.2s ease;
+  }
+  
+  .hover-elevate:hover {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.25);
+    transform: translateY(-2px);
+  }
+  
+  .active-elevate-2:active {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transform: translateY(0);
+  }
+}

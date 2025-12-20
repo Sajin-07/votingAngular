@@ -1,0 +1,133 @@
+<div
+  class="min-h-screen text-white p-6 md:p-12 flex flex-col font-inter"
+  [style.background]="'radial-gradient(circle at center, #535056 0%, #25242D 70%)'"
+>
+  <div class="max-w-7xl mx-auto w-full flex flex-col h-full">
+    <header
+      class="flex flex-col md:flex-row justify-between items-center md:items-start mb-10 gap-6 mt-4"
+    >
+      <div class="flex flex-col items-center md:items-start text-center md:text-left">
+        <h1 class="uppercase text-2xl md:text-[28px] mb-4 font-bold tracking-tight">
+          DATASOFT POPULARITY CONTEST
+        </h1>
+
+        <div class="flex flex-col sm:flex-row gap-2 md:gap-8 text-base md:text-[18px]">
+          <p class="text-[#A1A1A1]">
+            Vote Ends In
+            <span class="ml-1 text-white font-inter font-bold">{{ timeLeft }}</span>
+          </p>
+          <p class="text-[#A1A1A1]">
+            Date
+            <span class="ml-1 text-white font-bold">15 December 2025</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4 mt-2 md:mt-0">
+        <p class="text-base md:text-[18px] text-[#A1A1A1]">Powered by</p>
+        <img [src]="logoImg" alt="DataSoft" class="h-8 md:h-10" />
+      </div>
+    </header>
+
+    <div class="mb-6 hidden md:block w-full max-w-6xl mx-auto px-4">
+      <div class="relative">
+        <div class="absolute top-[52px] left-24 right-24 h-[4px] bg-white/60"></div>
+
+        <div
+          class="absolute top-[52px] left-24 h-[4px] bg-[#529F2D] transition-all duration-500"
+          [style.width]="(activeIndex / (STEPS.length - 1)) * 85 + '%'"
+        ></div>
+
+        <div class="flex justify-between relative z-10">
+          <div *ngFor="let step of STEPS" class="flex flex-col items-center gap-3 min-w-[140px]">
+            <span
+              class="text-[16px]"
+              [class]="step.status !== 'pending' ? 'text-[#529F2D]' : 'text-[#707070]'"
+            >
+              Step {{ step.id }}
+            </span>
+
+            <div
+              class="w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors duration-300"
+              [class.bg-[#529F2D]]="step.status === 'completed' || step.status === 'active'"
+              [class.border-[#529F2D]]="step.status === 'completed' || step.status === 'active'"
+              [class.bg-[#A1A1A1]]="step.status === 'pending'"
+              [class.border-[#A1A1A1]]="step.status === 'pending'"
+            >
+              <lucide-icon
+                *ngIf="step.status === 'completed'"
+                [img]="icons.Check"
+                class="w-6 h-6 text-white"
+              ></lucide-icon>
+            </div>
+
+            <span
+              class="text-[14px] font-semibold"
+              [class]="step.status !== 'pending' ? 'text-white' : 'text-[#707070]'"
+            >
+              {{ step.label }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex-1 max-w-5xl mx-auto w-full mt-10 mb-10 font-inter">
+      <div
+        class="w-full h-[360px] bg-[#00000054] border border-[#3E3D45] rounded-xl flex flex-col items-center justify-center relative shadow-[0px_4px_4px_0px_#00000040] p-8"
+      >
+        <div class="mb-8 relative">
+          <div class="absolute inset-0 bg-[#529F2D] rounded-full opacity-20 animate-ping"></div>
+          <div
+            class="relative w-20 h-20 bg-[#333138] rounded-full flex items-center justify-center border-2 border-[#529F2D]"
+          >
+            <lucide-icon
+              [img]="icons.User"
+              class="w-8 h-8 text-white"
+              [strokeWidth]="2"
+            ></lucide-icon>
+          </div>
+        </div>
+
+        <div class="w-full max-w-[400px] flex flex-col gap-3">
+          <label class="text-[#A1A1A1] text-sm font-semibold uppercase tracking-wider ml-1">
+            Enter your ID
+          </label>
+          <div class="relative group">
+            <div
+              class="absolute left-4 top-1/2 -translate-y-1/2 text-[#707070] group-focus-within:text-[#529F2D] transition-colors"
+            >
+              <lucide-icon [img]="icons.IdCard" class="w-6 h-6"></lucide-icon>
+            </div>
+
+            <input
+              type="text"
+              [(ngModel)]="employeeId"
+              placeholder="e.g DS00615"
+              class="w-full h-[60px] bg-[#222126] border border-[#3E3D45] rounded-lg pl-14 pr-4 text-white text-[18px] placeholder:text-white/20 focus:outline-none focus:border-[#529F2D] focus:ring-1 focus:ring-[#529F2D] transition-all duration-200"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="flex flex-col-reverse md:flex-row justify-between max-w-5xl mx-auto w-full px-4 gap-4 mt-auto"
+    >
+      <button
+        class="h-[60px] w-full md:w-[200px] uppercase font-semibold text-[18px] bg-gradient-to-r from-[#444249] to-[#222126] border-0 ring-0 outline-none shadow-md transition-all duration-200 hover:shadow-lg hover:from-[#4f4c55] hover:to-[#2a2830] active:scale-95 cursor-pointer rounded-lg text-white"
+      >
+        CANCEL
+      </button>
+
+      <button
+        [disabled]="!employeeId"
+        [class.opacity-50]="!employeeId"
+        [class.cursor-not-allowed]="!employeeId"
+        class="h-[60px] w-full md:w-[200px] uppercase font-semibold text-[18px] bg-gradient-to-r from-[#529F2D] to-[#1D3910] border-0 ring-0 outline-none shadow-md transition-all duration-200 hover:shadow-[0_8px_24px_rgba(82,159,45,0.45)] hover:from-[#5fb834] hover:to-[#234715] active:scale-95 cursor-pointer rounded-lg text-white"
+      >
+        VERIFY ID
+      </button>
+    </div>
+  </div>
+</div>

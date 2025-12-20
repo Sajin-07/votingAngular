@@ -1,0 +1,5 @@
+/* Invert calendar icon color for dark mode in some browsers */
+.custom-date-input::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(0.6);
+    cursor: pointer;
+}

@@ -1,0 +1,41 @@
+<div class="p-8 space-y-4">
+  <h1 class="text-2xl font-bold mb-4">Button Component Test</h1>
+  
+  <!-- Default variant -->
+  <app-button (clicked)="handleClick('Default')">
+    Default Button
+  </app-button>
+  
+  <!-- Destructive variant -->
+  <app-button variant="destructive" (clicked)="handleClick('Destructive')">
+    Destructive Button
+  </app-button>
+  
+  <!-- Outline variant -->
+  <app-button variant="outline" (clicked)="handleClick('Outline')">
+    Outline Button
+  </app-button>
+  
+  <!-- Secondary variant -->
+  <app-button variant="secondary" (clicked)="handleClick('Secondary')">
+    Secondary Button
+  </app-button>
+  
+  <!-- Ghost variant -->
+  <app-button variant="ghost" (clicked)="handleClick('Ghost')">
+    Ghost Button
+  </app-button>
+  
+  <!-- Different sizes -->
+  <div class="space-x-2">
+    <app-button size="sm">Small</app-button>
+    <app-button size="default">Default</app-button>
+    <app-button size="lg">Large</app-button>
+  </div>
+  
+  <!-- Disabled state -->
+  <app-button [disabled]="true">Disabled Button</app-button>
+  
+  <!-- Custom class -->
+  <app-button class="w-full">Full Width Button</app-button>
+</div>

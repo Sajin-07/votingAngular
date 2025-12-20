@@ -1,0 +1,89 @@
+<div
+  class="min-h-screen text-white p-6 md:p-12 flex flex-col font-inter"
+  [style.background]="'radial-gradient(circle at center, #535056 0%, #25242D 70%)'"
+>
+  <div class="max-w-7xl mx-auto w-full flex flex-col h-full">
+    
+    <header class="flex justify-between items-center mb-16 animate-in fade-in slide-in-from-top-5 duration-700">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center border border-white/10">
+          <lucide-icon [img]="icons.ShieldCheck" class="w-6 h-6 text-[#529F2D]"></lucide-icon>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-sm text-[#A1A1A1] uppercase tracking-wider">Secure Election System</span>
+          <span class="font-bold text-white">v1.0.0</span>
+        </div>
+      </div>
+      <img [src]="logoImg" alt="DataSoft" class="h-8 md:h-10 opacity-90" />
+    </header>
+
+    <main class="flex-1 flex flex-col items-center justify-center relative z-10">
+       
+       <div class="text-center mb-16 max-w-3xl mx-auto space-y-4 animate-in zoom-in-95 duration-700 delay-100">
+         <h1 class="uppercase text-[42px] md:text-[56px] font-bold leading-tight tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60">
+           DataSoft Popularity Contest
+         </h1>
+         <p class="text-[18px] text-[#A1A1A1] max-w-xl mx-auto leading-relaxed">
+           Welcome to the official voting platform. Please select a portal below to proceed with your designated action.
+         </p>
+       </div>
+
+       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-6xl">
+         
+         <a
+           *ngFor="let item of MENU_ITEMS; let i = index"
+           [routerLink]="item.path"
+           class="group relative overflow-hidden rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col justify-between p-8 min-h-[320px] bg-[#00000054] border-[#3E3D45] shadow-[0px_4px_4px_0px_#00000040] hover:scale-[1.02] hover:-translate-y-1 hover:border-opacity-100"
+           [class]="item.primary ? 'hover:border-[#529F2D]' : 'hover:border-white/40'"
+           [style.animation-delay]="(i * 150) + 'ms'"
+         >
+           
+           <div>
+             <div 
+               class="w-16 h-16 rounded-xl bg-[#2A2931] border border-[#3E3D45] flex items-center justify-center mb-6 transition-all duration-300"
+               [ngClass]="item.glow"
+             >
+                <div class="w-8 h-8">
+                  <lucide-icon 
+                    [img]="getIcon(item.icon)" 
+                    class="w-full h-full transition-colors"
+                    [class]="item.color"
+                    [strokeWidth]="1.5"
+                  ></lucide-icon>
+                </div>
+             </div>
+
+             <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-white transition-colors">
+               {{ item.title }}
+             </h3>
+             <p class="text-[#A1A1A1] text-sm leading-relaxed group-hover:text-white/80 transition-colors">
+               {{ item.description }}
+             </p>
+           </div>
+
+           <div class="mt-8 flex items-center justify-between border-t border-white/5 pt-6">
+             <span 
+               class="text-sm font-semibold uppercase tracking-wider transition-colors"
+               [class]="item.primary ? 'text-[#529F2D]' : 'text-[#A1A1A1] group-hover:text-white'"
+             >
+               Access Portal
+             </span>
+             <div 
+               class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300"
+               [class]="item.primary ? 'bg-[#529F2D] text-white' : 'bg-white/10 text-white group-hover:bg-white group-hover:text-black'"
+             >
+                <lucide-icon [img]="icons.ArrowRight" class="w-5 h-5"></lucide-icon>
+             </div>
+           </div>
+
+           <div 
+             *ngIf="item.primary"
+             class="absolute inset-0 bg-gradient-to-t from-[#529F2D]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+           ></div>
+         </a>
+       </div>
+    </main>
+
+
+  </div>
+</div>

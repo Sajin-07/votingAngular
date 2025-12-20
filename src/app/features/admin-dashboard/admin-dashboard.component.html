@@ -1,0 +1,129 @@
+<div
+  class="min-h-screen text-white p-4 md:p-8 flex flex-col font-inter"
+  [style.background]="'radial-gradient(circle at center, #535056 0%, #25242D 70%)'"
+>
+  <div class="max-w-[1400px] mx-auto w-full flex flex-col h-full">
+    
+    <header class="flex flex-col md:flex-row justify-between items-center md:items-start mb-6 md:mb-10 gap-6 mt-4">
+      <div class="flex flex-col items-center md:items-start text-center md:text-left">
+        <h1 class="uppercase text-2xl md:text-[28px] mb-4 font-bold tracking-tight">
+          DATASOFT POPULARITY CONTEST
+        </h1>
+
+        <div class="flex flex-col sm:flex-row gap-2 md:gap-8 text-base md:text-[18px]">
+          <p class="text-[#A1A1A1]">
+            Vote Ends In
+            <span class="ml-1 text-white font-inter font-bold">{{ timeLeft }}</span>
+          </p>
+          <p class="text-[#A1A1A1]">
+            Date
+            <span class="ml-1 text-white font-bold">15 December 2025</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4 mt-2 md:mt-0">
+        <p class="text-base md:text-[18px] text-[#A1A1A1]">Powered by</p>
+        <img [src]="logoImg" alt="DataSoft" class="h-8 md:h-10" />
+      </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <div class="lg:col-span-4 flex flex-col gap-6">
+        
+        <div class="flex flex-col gap-2">
+          <span class="text-[#A1A1A1] text-sm font-semibold uppercase tracking-wider">Profile</span>
+          <div class="bg-[#2A2931] border border-[#3E3D45] rounded-xl p-6 shadow-lg h-auto md:h-[210px] flex flex-col justify-between gap-4 md:gap-0">
+            <div>
+              <p class="text-[#A1A1A1] text-xs mb-1">Poll Branch</p>
+              <h3 class="text-xl font-bold">DataSoft Shyamoli HQ</h3>
+            </div>
+
+            <div>
+              <p class="text-[#A1A1A1] text-xs mb-2">Logged In Agent</p>
+              <div class="flex justify-between items-center bg-[#222126] p-3 rounded-lg border border-[#3E3D45]">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-[#A1A1A1] flex items-center justify-center text-[#222126]">
+                    <lucide-icon [img]="icons.User" class="w-6 h-6"></lucide-icon>
+                  </div>
+                  <span class="font-bold text-sm md:text-base">Md. Ashiful Islam</span>
+                </div>
+                <button class="w-10 h-10 rounded-lg bg-[#F87171] hover:bg-[#EF4444] text-white flex items-center justify-center transition-colors shrink-0">
+                  <lucide-icon [img]="icons.LogOut" class="w-5 h-5"></lucide-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <span class="text-[#A1A1A1] text-sm font-semibold uppercase tracking-wider">Vote Summary</span>
+          <div class="grid grid-cols-2 gap-3 h-[300px] md:h-[480px]">
+            <div
+              *ngFor="let stat of STATS"
+              class="bg-[#2A2931] border border-[#3E3D45] rounded-xl p-3 flex flex-col items-center justify-center text-center shadow-lg h-full hover:bg-[#32313a] transition-colors cursor-default"
+            >
+              <span class="text-[32px] md:text-[42px] font-bold leading-none mb-1 {{ stat.color }}">
+                {{ stat.value }}
+              </span>
+              <span class="text-white font-semibold text-xs md:text-sm">
+                {{ stat.label }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-8 flex flex-col gap-6">
+        
+        <div class="flex flex-col gap-2">
+          <span class="text-[#A1A1A1] text-sm font-semibold uppercase tracking-wider">Functionalities</span>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 h-auto md:h-[210px]">
+            
+            <div class="group bg-[#FFA726] hover:bg-[#FB8C00] rounded-xl p-4 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all duration-300 shadow-lg min-h-[140px] md:min-h-0 h-full">
+              <lucide-icon [img]="icons.QrCode" class="w-10 h-10 text-white"></lucide-icon>
+              <span class="text-white font-bold text-lg text-center">Generate QR Code</span>
+            </div>
+
+            <div class="group bg-[#29B6F6] hover:bg-[#039BE5] rounded-xl p-4 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all duration-300 shadow-lg min-h-[140px] md:min-h-0 h-full">
+              <lucide-icon [img]="icons.List" class="w-10 h-10 text-white"></lucide-icon>
+              <span class="text-white font-bold text-lg text-center">Check Voter List</span>
+            </div>
+
+            <div class="group bg-[#66BB6A] hover:bg-[#43A047] rounded-xl p-4 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all duration-300 shadow-lg min-h-[140px] md:min-h-0 h-full">
+              <lucide-icon [img]="icons.Lock" class="w-10 h-10 text-white"></lucide-icon>
+              <span class="text-white font-bold text-lg text-center">Change Credential</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <span class="text-[#A1A1A1] text-sm font-semibold uppercase tracking-wider">Poll Activity</span>
+
+          <div class="bg-[#2A2931] border border-[#3E3D45] rounded-xl p-6 shadow-lg h-[480px] flex flex-col">
+            <div class="flex text-[#707070] text-xs font-bold uppercase tracking-wider mb-2 px-2 shrink-0">
+              <div class="w-24 md:w-32">Time Stamp</div>
+              <div class="flex-1">Activity</div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-1">
+              <div
+                *ngFor="let activity of ACTIVITIES"
+                class="flex items-center text-sm py-2 px-2 border-b border-white/5 last:border-0 hover:bg-white/5 rounded-lg transition-colors"
+              >
+                <div class="w-24 md:w-32 text-white font-medium opacity-90 text-xs md:text-sm">
+                  {{ activity.time }}
+                </div>
+                <div class="flex-1 text-[#A1A1A1] text-xs md:text-sm">
+                  {{ activity.action }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,143 @@
+<div
+  class="min-h-screen text-white flex items-center justify-center font-inter relative overflow-hidden select-none"
+  [style.background]="'radial-gradient(circle at 24.1% 68.8%, rgb(50, 50, 50) 0%, rgb(0, 0, 0) 99.4%)'"
+>
+  <div class="absolute inset-0 pointer-events-none opacity-30">
+    <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      </svg>
+  </div>
+
+  <div class="w-full max-w-sm p-8 bg-[#00000054] rounded-2xl border border-[#3E3D45] shadow-[0px_8px_32px_rgba(0,0,0,0.6)] backdrop-blur-sm relative z-10 animate-in zoom-in-95 duration-500">
+    
+    <header class="flex flex-col items-center justify-center text-center mb-6 border-b border-white/5 pb-6">
+      <img [src]="logoImg" alt="DataSoft Logo" class="h-8 opacity-90 mb-6" /> 
+      <div class="relative flex items-center justify-center mb-4">
+        <lucide-icon [img]="icons.ShieldCheck" class="w-14 h-14 text-[#529F2D] relative z-10" [strokeWidth]="1.25"></lucide-icon>
+        <div class="absolute w-16 h-16 rounded-full bg-[#529F2D] opacity-20 animate-ping"></div>
+      </div>
+      <div class="flex flex-col">
+          <span class="text-sm text-[#A1A1A1] uppercase tracking-wider font-medium">Secure Election System</span>
+          <span class="text-2xl font-bold text-white tracking-tight uppercase mt-1">Admin Portal</span>
+      </div>
+    </header>
+
+    <div *ngIf="error" class="mb-6 p-3.5 text-sm text-red-300 bg-red-950/30 border border-red-800 rounded-xl text-center animate-shake">
+      {{ error }}
+    </div>
+
+    <form (submit)="handleLogin($event)" class="space-y-5">
+      
+      <div class="space-y-1.5">
+        <label class="block text-sm text-[#A1A1A1] font-medium flex items-center gap-2 ml-1">
+          <lucide-icon [img]="icons.User" class="w-4 h-4"></lucide-icon> Admin ID
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="adminId"
+          name="adminId"
+          placeholder="Enter Admin ID"
+          class="w-full px-4 py-2.5 bg-[#00000033] border border-[#3E3D45] rounded-xl focus:border-[#529F2D] focus:ring-1 focus:ring-[#529F2D]/30 outline-none text-white placeholder:text-[#707070]" 
+        />
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="block text-sm text-[#A1A1A1] font-medium flex items-center gap-2 ml-1">
+          <lucide-icon [img]="icons.Lock" class="w-4 h-4"></lucide-icon> Password
+        </label>
+        <input
+          type="password"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="Enter Password"
+          class="w-full px-4 py-2.5 bg-[#00000033] border border-[#3E3D45] rounded-xl focus:border-[#529F2D] focus:ring-1 focus:ring-[#529F2D]/30 outline-none text-white placeholder:text-[#707070]" 
+        />
+      </div>
+
+      <div 
+        class="relative bg-[#1D1C23] border rounded-xl p-4 overflow-hidden transition-colors duration-300"
+        [class.border-[#529F2D]]="isMined"
+        [class.bg-[#529F2D]/5]="isMined"
+        [class.border-[#3E3D45]]="!isMined"
+      >
+          <div 
+            class="absolute left-0 top-0 bottom-0 bg-[#529F2D]/20 transition-all duration-75 ease-linear"
+            [style.width.%]="miningProgress"
+          ></div>
+
+          <div class="relative z-10 flex flex-col items-center gap-3">
+            
+            <div class="flex justify-between w-full text-xs font-mono uppercase tracking-widest">
+               <span [class.text-[#529F2D]]="isMined" [class.text-[#707070]]="!isMined">
+                  {{ isMined ? "BLOCK VERIFIED" : isMining ? "MINING IN PROGRESS..." : "PROOF OF WORK REQUIRED" }}
+               </span>
+               <span class="transition-colors" [class.text-white]="isMining || isMined" [class.text-[#529F2D]]="!isMining && !isMined">
+                  {{ currentHash }}
+               </span>
+            </div>
+
+            <div 
+               (mousedown)="startMining()"
+               (mouseup)="stopMining()"
+               (mouseleave)="stopMining()"
+               (touchstart)="startMining()"
+               (touchend)="stopMining()"
+               class="w-16 h-16 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all duration-200 active:scale-90 select-none"
+               [class.border-[#529F2D]]="isMined"
+               [class.bg-[#529F2D]]="isMined"
+               [class.text-white]="isMined || isMining"
+               [class.shadow-[0_0_20px_rgba(82,159,45,0.6)]]="isMined"
+               
+               [class.border-white]="isMining && !isMined"
+               [class.bg-white/10]="isMining && !isMined"
+               [class.scale-95]="isMining && !isMined"
+
+               [class.border-[#3E3D45]]="!isMining && !isMined"
+               [class.text-[#707070]]="!isMining && !isMined"
+               [class.hover:border-[#529F2D]]="!isMining && !isMined"
+               [class.hover:text-[#529F2D]]="!isMining && !isMined"
+            >
+               <ng-container *ngIf="isMined; else fingerIcon">
+                  <lucide-icon [img]="icons.CheckCircle2" class="w-8 h-8 animate-in zoom-in duration-300"></lucide-icon>
+               </ng-container>
+               <ng-template #fingerIcon>
+                  <lucide-icon [img]="icons.Fingerprint" class="w-8 h-8" [class.animate-pulse]="isMining"></lucide-icon>
+               </ng-template>
+            </div>
+
+            <p class="text-[10px] text-[#707070] uppercase tracking-wide">
+               {{ isMined ? "Identity Confirmed" : "Press & Hold to Mine Block" }}
+            </p>
+          </div>
+      </div>
+      <button 
+        type="submit" 
+        [disabled]="loading || !isMined" 
+        class="w-full h-auto py-3 font-bold text-lg text-white uppercase tracking-wider rounded-xl bg-gradient-to-r from-[#529F2D] to-[#1D3910] shadow-lg flex items-center justify-center gap-3 transition-all duration-200"
+        [class.opacity-50]="!isMined || loading"
+        [class.cursor-not-allowed]="!isMined || loading"
+        [class.grayscale]="!isMined || loading"
+        [class.hover:from-[#62bf36]]="isMined && !loading"
+        [class.hover:to-[#264d14]]="isMined && !loading"
+        [class.active:scale-[0.98]]="isMined && !loading"
+      >
+        <ng-container *ngIf="loading; else btnText">
+           Verifying <lucide-icon [img]="icons.BrainCircuit" class="w-6 h-6 animate-spin"></lucide-icon>
+        </ng-container>
+        <ng-template #btnText>
+           Authenticate Admin <lucide-icon [img]="icons.ArrowRight" class="w-5 h-5 group-hover:translate-x-1"></lucide-icon>
+        </ng-template>
+      </button>
+
+    </form>
+
+    <div class="mt-8 text-center border-t border-white/5 pt-6">
+      <p class="text-xs text-[#707070]">DataSoft Blockchain Verification Protocol v1.3</p>
+    </div>
+  </div>
+</div>
