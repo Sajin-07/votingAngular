@@ -1,6 +1,6 @@
 
 export default {
-  basePath: '/datasoft-voting-system',
+  basePath: '/votingAngular',
   supportedLocales: {
   "en-US": ""
 },
