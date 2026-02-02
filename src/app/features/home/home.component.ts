@@ -28,32 +28,44 @@ export class HomeComponent {
       id: 'admin',
       title: 'Admin Dashboard',
       description: 'Manage candidates, view live results, and system settings.',
-      icon: 'LayoutDashboard', // String reference to the icon map
-      path: '/dashboard',
+      icon: 'LayoutDashboard',
+      path: '/adminLogin', 
       color: 'text-blue-400',
       glow: 'group-hover:shadow-[0_0_20px_rgba(96,165,250,0.5)]',
       primary: false
     },
     {
-      id: 'register',
-      title: 'Register Employee',
-      description: 'Enroll new voters and update employee database.',
+      id: 'QR',
+      title: 'QR',
+      description: 'Generate QR Code',
       icon: 'UserPlus',
-      path: '/register',
+      // UPDATED PATH HERE
+      path: '/qr-login', 
       color: 'text-purple-400',
       glow: 'group-hover:shadow-[0_0_20px_rgba(192,132,252,0.5)]',
       primary: false
     },
     {
-      id: 'vote',
-      title: 'Voting Portal',
-      description: 'Cast your vote securely using your employee ID.',
-      icon: 'Vote',
-      path: '/step1',
-      color: 'text-[#529F2D]',
-      glow: 'group-hover:shadow-[0_0_20px_rgba(82,159,45,0.5)]',
-      primary: true
-    }
+      id: 'QR Verify',
+      title: 'QR Verify',
+      description: 'Verify QR Code to Cast Vote',
+      icon: 'UserPlus',
+      // UPDATED PATH HERE
+      path: '/qr-verify', 
+      color: 'text-purple-400',
+      glow: 'group-hover:shadow-[0_0_20px_rgba(192,132,252,0.5)]',
+      primary: false
+    },
+    // {
+    //   id: 'vote',
+    //   title: 'Voting Portal',
+    //   description: 'Cast your vote securely using your employee ID.',
+    //   icon: 'Vote',
+    //   path: '/step1',
+    //   color: 'text-[#529F2D]',
+    //   glow: 'group-hover:shadow-[0_0_20px_rgba(82,159,45,0.5)]',
+    //   primary: true
+    // }
   ];
 
   // Helper to resolve icon based on string name

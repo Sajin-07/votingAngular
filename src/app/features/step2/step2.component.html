@@ -17,7 +17,7 @@
           </p>
           <p class="text-[#A1A1A1]">
             Date
-            <span class="ml-1 text-white font-bold">15 December 2025</span>
+            <span class="ml-1 text-white font-bold">{{ currentDate }}</span>
           </p>
         </div>
       </div>
@@ -101,6 +101,7 @@
       
       <a routerLink="/step1" class="w-full md:w-[200px]">
         <button
+          (click)="cancelVote()"
           class="h-[60px] w-full uppercase font-semibold text-[18px] bg-gradient-to-r from-[#444249] to-[#222126] border-0 ring-0 outline-none shadow-md transition-all duration-200 hover:shadow-lg hover:from-[#4f4c55] hover:to-[#2a2830] active:scale-95 cursor-pointer rounded-lg text-white"
         >
           Cancel Vote
@@ -109,6 +110,7 @@
      
       <a routerLink="/step3" class="w-full md:w-[200px]">
         <button
+          (click)="proceedToNext()"
           class="h-[60px] w-full uppercase font-semibold text-[18px] bg-gradient-to-r from-[#529F2D] to-[#1D3910] border-0 ring-0 outline-none shadow-md transition-all duration-200 hover:shadow-[0_8px_24px_rgba(82,159,45,0.45)] hover:from-[#5fb834] hover:to-[#234715] active:scale-95 cursor-pointer rounded-lg text-white"
         >
           Proceed to Vote

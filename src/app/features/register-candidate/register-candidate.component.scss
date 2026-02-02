@@ -1,0 +1,31 @@
+:host {
+  display: block;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #25242D; 
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3E3D45; 
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #529F2D; 
+}
+
+/* Fix autofill background color */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active{
+    -webkit-box-shadow: 0 0 0 30px #25242D inset !important;
+    -webkit-text-fill-color: white !important;
+    caret-color: white;
+}

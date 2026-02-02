@@ -1,0 +1,239 @@
+<div class="settings-container">
+  <header class="settings-header">
+    <button class="btn-back" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </button>
+    <h1>Organization Settings</h1>
+    <p>Configure custom fields for candidate and voter registration</p>
+  </header>
+
+  <div class="settings-content">
+    <section class="field-section">
+      <div class="section-header">
+        <h2><i class="fas fa-user-tie"></i> Candidate Custom Fields</h2>
+        <p class="section-note">Note: "Candidate ID" is mandatory and always required.</p>
+      </div>
+
+      <div class="add-field-form">
+        <h3>Add New Field</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Field Name (Key)</label>
+            <input
+              type="text"
+              [(ngModel)]="newCandidateField.fieldName"
+              placeholder="e.g., position, photoUrl, description"
+              [disabled]="isLoading"
+            />
+            <small>This is the JSON key (no spaces)</small>
+          </div>
+
+          <div class="form-group">
+            <label>Field Label (Display)</label>
+            <input
+              type="text"
+              [(ngModel)]="newCandidateField.fieldLabel"
+              placeholder="e.g., Position, Photo URL, Description"
+              [disabled]="isLoading"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Placeholder</label>
+            <input
+              type="text"
+              [(ngModel)]="newCandidateField.placeholder"
+              placeholder="Optional placeholder text"
+              [disabled]="isLoading"
+            />
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-add" (click)="addCandidateField()" [disabled]="isLoading">
+              <i class="fas fa-plus"></i> Add Field
+            </button>
+          </div>
+        </div>
+
+        <div class="success-message" *ngIf="candidateMessage">
+          <i class="fas fa-check-circle"></i> {{ candidateMessage }}
+        </div>
+        <div class="error-message" *ngIf="candidateError">
+          <i class="fas fa-exclamation-circle"></i> {{ candidateError }}
+        </div>
+      </div>
+
+      <div class="fields-list">
+        <h3>Current Fields ({{ candidateFields.length }})</h3>
+        
+        <div class="empty-state" *ngIf="candidateFields.length === 0">
+          <i class="fas fa-inbox"></i>
+          <p>No custom fields configured yet</p>
+        </div>
+
+        <div class="field-card" *ngFor="let field of candidateFields">
+          <div class="field-info" *ngIf="editingCandidateField?._id !== field._id">
+            <div class="field-name">
+              <strong>{{ field.fieldLabel }}</strong>
+              <span class="field-key">{{ field.fieldName }}</span>
+            </div>
+            <div class="field-placeholder" *ngIf="field.placeholder">
+              Placeholder: "{{ field.placeholder }}"
+            </div>
+          </div>
+
+          <div class="field-edit" *ngIf="editingCandidateField?._id === field._id">
+            <div class="form-group">
+              <label>Field Label</label>
+              <input
+                type="text"
+                [(ngModel)]="editingCandidateField!.fieldLabel"
+              />
+            </div>
+            <div class="form-group">
+              <label>Placeholder</label>
+              <input
+                type="text"
+                [(ngModel)]="editingCandidateField!.placeholder"
+              />
+            </div>
+          </div>
+
+          <div class="field-actions">
+            <ng-container *ngIf="editingCandidateField?._id !== field._id">
+              <button class="btn-edit" (click)="startEditCandidateField(field)">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-delete" (click)="deleteCandidateField(field._id!)">
+                <i class="fas fa-trash"></i>
+              </button>
+            </ng-container>
+
+            <ng-container *ngIf="editingCandidateField?._id === field._id">
+              <button class="btn-save" (click)="saveEditCandidateField()">
+                <i class="fas fa-check"></i>
+              </button>
+              <button class="btn-cancel" (click)="cancelEditCandidateField()">
+                <i class="fas fa-times"></i>
+              </button>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="field-section">
+      <div class="section-header">
+        <h2><i class="fas fa-users"></i> Voter Custom Fields</h2>
+        <p class="section-note">Note: "Voter ID" is mandatory and always required.</p>
+      </div>
+
+      <div class="add-field-form">
+        <h3>Add New Field</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Field Name (Key)</label>
+            <input
+              type="text"
+              [(ngModel)]="newVoterField.fieldName"
+              placeholder="e.g., name, designation, bloodGroup"
+              [disabled]="isLoading"
+            />
+            <small>This is the JSON key (no spaces)</small>
+          </div>
+
+          <div class="form-group">
+            <label>Field Label (Display)</label>
+            <input
+              type="text"
+              [(ngModel)]="newVoterField.fieldLabel"
+              placeholder="e.g., Full Name, Designation, Blood Group"
+              [disabled]="isLoading"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Placeholder</label>
+            <input
+              type="text"
+              [(ngModel)]="newVoterField.placeholder"
+              placeholder="Optional placeholder text"
+              [disabled]="isLoading"
+            />
+          </div>
+
+          <div class="form-actions">
+            <button class="btn-add" (click)="addVoterField()" [disabled]="isLoading">
+              <i class="fas fa-plus"></i> Add Field
+            </button>
+          </div>
+        </div>
+
+        <div class="success-message" *ngIf="voterMessage">
+          <i class="fas fa-check-circle"></i> {{ voterMessage }}
+        </div>
+        <div class="error-message" *ngIf="voterError">
+          <i class="fas fa-exclamation-circle"></i> {{ voterError }}
+        </div>
+      </div>
+
+      <div class="fields-list">
+        <h3>Current Fields ({{ voterFields.length }})</h3>
+        
+        <div class="empty-state" *ngIf="voterFields.length === 0">
+          <i class="fas fa-inbox"></i>
+          <p>No custom fields configured yet</p>
+        </div>
+
+        <div class="field-card" *ngFor="let field of voterFields">
+          <div class="field-info" *ngIf="editingVoterField?._id !== field._id">
+            <div class="field-name">
+              <strong>{{ field.fieldLabel }}</strong>
+              <span class="field-key">{{ field.fieldName }}</span>
+            </div>
+            <div class="field-placeholder" *ngIf="field.placeholder">
+              Placeholder: "{{ field.placeholder }}"
+            </div>
+          </div>
+
+          <div class="field-edit" *ngIf="editingVoterField?._id === field._id">
+            <div class="form-group">
+              <label>Field Label</label>
+              <input
+                type="text"
+                [(ngModel)]="editingVoterField!.fieldLabel"
+              />
+            </div>
+            <div class="form-group">
+              <label>Placeholder</label>
+              <input
+                type="text"
+                [(ngModel)]="editingVoterField!.placeholder"
+              />
+            </div>
+          </div>
+
+          <div class="field-actions">
+            <ng-container *ngIf="editingVoterField?._id !== field._id">
+              <button class="btn-edit" (click)="startEditVoterField(field)">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-delete" (click)="deleteVoterField(field._id!)">
+                <i class="fas fa-trash"></i>
+              </button>
+            </ng-container>
+
+            <ng-container *ngIf="editingVoterField?._id === field._id">
+              <button class="btn-save" (click)="saveEditVoterField()">
+                <i class="fas fa-check"></i>
+              </button>
+              <button class="btn-cancel" (click)="cancelEditVoterField()">
+                <i class="fas fa-times"></i>
+              </button>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

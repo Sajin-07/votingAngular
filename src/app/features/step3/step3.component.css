@@ -1,0 +1,20 @@
+/* Custom Scrollbar for the list */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* --- CHANGED THIS SECTION --- */
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #2A2931; /* Grey background for the track */
+  border-radius: 20px;
+}
+/* ---------------------------- */
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #3E3D45; /* Dark grey slider handle */
+  border-radius: 20px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #529F2D; /* Green on hover */
+}
