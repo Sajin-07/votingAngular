@@ -265,7 +265,7 @@ export class OrgDashboardComponent implements OnInit, OnDestroy {
   }
 
   navigateToResults() {
-    this.router.navigate(['/results']);
+    this.router.navigate(['/vote-result']);
   }
 
   navigateToSettings() {

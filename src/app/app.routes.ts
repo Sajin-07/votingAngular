@@ -2,6 +2,8 @@ import { Routes } from '@angular/router';
 import { votingGuard } from './core/guards/voting.guard';
 import { adminGuard } from './core/guards/admin.guard'; 
 import { orgAdminGuard, moderatorGuard, orgUserGuard} from './core/guards/auth-guard';
+import { VoterAuthGuard } from './core/guards/voter-auth.guard';
+
 
 export const routes: Routes = [
   {
@@ -15,23 +17,29 @@ export const routes: Routes = [
   },
   {
     path: 'step2',
-    loadComponent: () => import('./features/step2/step2.component').then(m => m.Step2Component),
-    canActivate: [votingGuard] // Checks Auth + Step Logic
+    loadComponent: () => import('./features/step2/step2.component').then(m => m.Step2Component)
+    // canActivate: [VoterAuthGuard] // Checks Auth + Step Logic
   },
   {
     path: 'step3',
-    loadComponent: () => import('./features/step3/step3.component').then(m => m.Step3Component),
-    canActivate: [votingGuard]
+    loadComponent: () => import('./features/step3/step3.component').then(m => m.Step3Component)
+    // canActivate: [votingGuard]
   },
   {
     path: 'step4',
-    loadComponent: () => import('./features/step4/step4.component').then(m => m.Step4Component),
-    canActivate: [votingGuard]
+    loadComponent: () => import('./features/step4/step4.component').then(m => m.Step4Component)
+    // canActivate: [votingGuard]
   },
   {
     path: 'step5',
-    loadComponent: () => import('./features/step5/step5.component').then(m => m.Step5Component),
-    canActivate: [votingGuard]
+    loadComponent: () => import('./features/step5/step5.component').then(m => m.Step5Component)
+    // canActivate: [votingGuard]
+  },
+   {
+    path: 'vote-result',
+    loadComponent: () => import('./features/vote-result/vote-result.component').then(m => m.VoteResultComponent),
+    canActivate: [orgAdminGuard]
+    // canActivate: [votingGuard]
   },
   {
     path: 'dashboard',

@@ -7,7 +7,6 @@ import { map, catchError, of } from 'rxjs';
 export const orgAdminGuard: CanActivateFn = (route, state) => {
   const http = inject(HttpClient);
   const router = inject(Router);
-
   return http.get<any>('http://localhost:3000/api/auth/admin-status', {
     withCredentials: true
   }).pipe(

@@ -116,7 +116,7 @@ export class ModeratorDashboardComponent implements OnInit {
   }
 
   navigateToResults() {
-    this.router.navigate(['/results']);
+    this.router.navigate(['/vote-result']);
   }
 
   navigateToQrGeneration() {
