@@ -1,0 +1,144 @@
+<footer class="bg-black text-white font-yaldevi">
+  <!-- Main Footer Content -->
+  <div class="px-6 md:px-8 lg:px-12 py-16 md:py-20">
+    <div class="container mx-auto max-w-7xl">
+      <!-- Top Section: Logo and Links Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-8 mb-20">
+        <!-- Logo and Tagline -->
+        <div>
+          <h2 class="text-2xl md:text-3xl font-light text-white mb-4">Votium</h2>
+          <p class="text-sm font-light text-gray-400">Art. Project.Gallery.Publish</p>
+        </div>
+
+        <!-- About Us Section -->
+        <div>
+          <h3 class="text-base md:text-lg font-normal text-white mb-6">About Us</h3>
+          <ul class="space-y-3">
+            <li>
+              <a href="#" class="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300">
+                Career
+              </a>
+            </li>
+            <li>
+              <a href="#" class="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300">
+                Services
+              </a>
+            </li>
+            <li>
+              <a href="#" class="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300">
+                Projects
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Company Section -->
+        <div>
+          <h3 class="text-base md:text-lg font-normal text-white mb-6">Company</h3>
+          <ul class="space-y-3">
+            <li>
+              <a href="#" class="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300">
+                Blog
+              </a>
+            </li>
+            <li>
+              <a href="#" class="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300">
+                Career
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- About Us Section (Duplicate) -->
+        <div>
+          <h3 class="text-base md:text-lg font-normal text-white mb-6">About Us</h3>
+          <ul class="space-y-3">
+            <li>
+              <a href="#" class="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300">
+                Career
+              </a>
+            </li>
+            <li>
+              <a href="#" class="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300">
+                Career
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Contact Section -->
+        <div>
+          <h3 class="text-base md:text-lg font-normal text-white mb-6">Contact</h3>
+          <ul class="space-y-3">
+            <li>
+              <a href="tel:0088-0144558765" class="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300">
+                0088-0144558765
+              </a>
+            </li>
+            <li>
+              <a href="mailto:Artium.bd@gmail.com" class="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300">
+                Artium.bd@gmail.com
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Newsletter Section -->
+      <div class="border-t border-gray-800 pt-16 pb-12">
+        <div class="text-center mb-10">
+          <h3 class="text-2xl md:text-3xl font-light text-white">
+            Sign Up for Newsletter to stay up to date
+          </h3>
+        </div>
+
+        <!-- Newsletter Input -->
+        <div class="max-w-2xl mx-auto">
+          <form (ngSubmit)="onNewsletterSubmit()" class="relative">
+            <div class="flex items-center border-2 border-gray-700 rounded-full px-8 py-4 bg-black hover:border-gray-600 transition-colors duration-300">
+              <input 
+                type="email"
+                [(ngModel)]="email"
+                name="email"
+                placeholder="Enter Your Email Address"
+                class="flex-1 bg-transparent text-white placeholder-gray-500 font-light text-base outline-none border-none focus:ring-0"
+                required
+              />
+              <button 
+                type="submit"
+                class="ml-4 text-white hover:text-gray-300 transition-colors duration-300 flex-shrink-0"
+              >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Footer -->
+  <div class="border-t border-gray-800 px-6 md:px-8 lg:px-12 py-6">
+    <div class="container mx-auto max-w-7xl">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <p class="text-sm font-light text-gray-400">
+          2026 All Rights Reserved
+        </p>
+        
+        <div class="flex gap-8 md:gap-12">
+          <a href="#" class="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300">
+            Help Center
+          </a>
+          <a href="#" class="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300">
+            Terms of Use
+          </a>
+          <a href="#" class="text-sm font-light text-gray-400 hover:text-white transition-colors duration-300">
+            Privacy Policy
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

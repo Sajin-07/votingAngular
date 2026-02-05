@@ -1,0 +1,32 @@
+:host {
+  font-family: 'Yaldevi Colombo', sans-serif;
+  font-weight: 300;
+  display: block;
+  width: 100%;
+}
+
+footer {
+  margin-top: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  footer {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+/* Newsletter input styling */
+input::placeholder {
+  color: rgba(107, 114, 128, 0.6);
+}
+
+input:focus {
+  outline: none;
+}
+
+/* Link hover effects */
+a {
+  text-decoration: none;
+}

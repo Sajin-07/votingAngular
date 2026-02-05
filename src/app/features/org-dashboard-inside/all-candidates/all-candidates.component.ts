@@ -32,33 +32,35 @@ interface CandidatesResponse {
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="min-h-screen bg-gray-50 p-6">
+    <div class="min-h-screen p-6"
+         [style.background]="'radial-gradient(circle at center, #535056 0%, #25242D 70%)'">
+      
       <div class="max-w-7xl mx-auto mb-8">
         <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-3xl font-bold text-gray-900">All Candidates</h1>
-            <p class="text-gray-600 mt-1">Manage and view all registered candidates</p>
+            <h1 class="text-3xl font-bold text-white">All Candidates</h1>
+            <p class="text-white/60 mt-1">Manage and view all registered candidates</p>
           </div>
           <div *ngIf="!loading && !error" class="text-right">
-            <p class="text-sm text-gray-500">Organization ID</p>
-            <p class="text-lg font-semibold text-gray-900">{{ tenantId || 'N/A' }}</p>
+            <p class="text-sm text-white/50">Organization ID</p>
+            <p class="text-lg font-semibold text-white/90">{{ tenantId || 'N/A' }}</p>
           </div>
         </div>
       </div>
 
       <div *ngIf="loading" class="max-w-7xl mx-auto">
-        <div class="bg-white rounded-lg shadow-md p-8">
+        <div class="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/10">
           <div class="flex flex-col items-center justify-center space-y-4">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p class="text-gray-600">Loading candidates...</p>
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+            <p class="text-white/70">Loading candidates...</p>
           </div>
         </div>
       </div>
 
       <div *ngIf="error && !loading" class="max-w-7xl mx-auto">
-        <div class="bg-red-50 border border-red-200 rounded-lg p-6">
-          <h3 class="text-lg font-medium text-red-800">Error Loading Candidates</h3>
-          <p class="mt-2 text-sm text-red-700">{{ errorMessage }}</p>
+        <div class="bg-red-500/10 border border-red-500/50 rounded-lg p-6 backdrop-blur-sm">
+          <h3 class="text-lg font-medium text-red-200">Error Loading Candidates</h3>
+          <p class="mt-2 text-sm text-red-200/80">{{ errorMessage }}</p>
           <button (click)="loadCandidates()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
             Try Again
           </button>
@@ -66,61 +68,62 @@ interface CandidatesResponse {
       </div>
 
       <div *ngIf="!loading && !error && candidates.length > 0" class="max-w-7xl mx-auto">
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        
+        <div class="bg-white/10 backdrop-blur-md rounded-xl shadow-xl p-6 mb-6 border border-white/10">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="text-center p-4 bg-blue-50 rounded-lg">
-              <p class="text-sm text-gray-600">Total Candidates</p>
-              <p class="text-3xl font-bold text-blue-600">{{ candidates.length }}</p>
+            <div class="text-center p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
+              <p class="text-sm text-blue-200">Total Candidates</p>
+              <p class="text-3xl font-bold text-blue-400">{{ candidates.length }}</p>
             </div>
-            <div class="text-center p-4 bg-green-50 rounded-lg">
-              <p class="text-sm text-gray-600">Total Votes</p>
-              <p class="text-3xl font-bold text-green-600">{{ totalVotes }}</p>
+            <div class="text-center p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+              <p class="text-sm text-emerald-200">Total Votes</p>
+              <p class="text-3xl font-bold text-emerald-400">{{ totalVotes }}</p>
             </div>
-            <div class="text-center p-4 bg-purple-50 rounded-lg">
-              <p class="text-sm text-gray-600">Average Votes</p>
-              <p class="text-3xl font-bold text-purple-600">{{ averageVotes }}</p>
+            <div class="text-center p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
+              <p class="text-sm text-purple-200">Average Votes</p>
+              <p class="text-3xl font-bold text-purple-400">{{ averageVotes }}</p>
             </div>
           </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-white/10 backdrop-blur-md rounded-xl shadow-xl overflow-hidden border border-white/10">
           <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
+            <table class="min-w-full divide-y divide-white/10">
+              <thead class="bg-black/20">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                  <th class="px-6 py-4 text-left text-xs font-medium text-white/60 uppercase tracking-wider w-24">
                     Image
                   </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th class="px-6 py-4 text-left text-xs font-medium text-white/60 uppercase tracking-wider">
                     Candidate ID
                   </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                  <th class="px-6 py-4 text-left text-xs font-medium text-white/60 uppercase tracking-wider w-32">
                     Votes
                   </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                  <th class="px-6 py-4 text-left text-xs font-medium text-white/60 uppercase tracking-wider w-24">
                     Details
                   </th>
                 </tr>
               </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
+              <tbody class="divide-y divide-white/10">
                 <ng-container *ngFor="let candidate of candidates">
-                  <tr class="hover:bg-gray-50 transition-colors">
+                  <tr class="hover:bg-white/5 transition-colors">
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="h-12 w-12 rounded-full overflow-hidden border border-gray-200 shadow-sm">
+                      <div class="h-12 w-12 rounded-full overflow-hidden border border-white/20 shadow-sm">
                         <img 
                           [src]="getDisplayImage(candidate)" 
                           [alt]="candidate.id" 
-                          class="h-full w-full object-cover bg-gray-100"
+                          class="h-full w-full object-cover bg-white/5"
                           (error)="handleImageError($event)">
                       </div>
                     </td>
                     
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <span class="text-sm font-mono text-gray-700 font-medium">{{ candidate.id }}</span>
+                      <span class="text-sm font-mono text-white/90 font-medium">{{ candidate.id }}</span>
                     </td>
 
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                         {{ candidate.voteCount || 0 }}
                       </span>
                     </td>
@@ -128,7 +131,7 @@ interface CandidatesResponse {
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                       <button 
                         (click)="toggleRow(candidate.id)"
-                        class="text-blue-600 hover:text-blue-900 font-medium flex items-center gap-1 transition-all">
+                        class="text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1 transition-all">
                         {{ isRowExpanded(candidate.id) ? 'Hide' : 'Show More' }}
                         <svg 
                           class="h-4 w-4 transform transition-transform duration-200" 
@@ -140,24 +143,24 @@ interface CandidatesResponse {
                     </td>
                   </tr>
                   
-                  <tr *ngIf="isRowExpanded(candidate.id)" class="bg-gray-50 border-b border-gray-200">
+                  <tr *ngIf="isRowExpanded(candidate.id)" class="bg-black/10">
                     <td colspan="4" class="px-6 py-6">
-                      <div class="bg-white rounded-lg p-5 shadow-sm border border-gray-100">
+                      <div class="bg-white/5 rounded-lg p-5 shadow-inner border border-white/5">
                         <div class="flex items-center mb-4">
-                          <h4 class="text-lg font-bold text-gray-800">Candidate Details</h4>
-                          <span class="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">JSON Data</span>
+                          <h4 class="text-lg font-bold text-white/90">Candidate Details</h4>
+                          <span class="ml-2 text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded">JSON Data</span>
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           <div *ngFor="let field of getAllFields(candidate)" class="group">
-                            <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-blue-600 transition-colors">
+                            <div class="text-xs font-semibold text-white/40 uppercase tracking-wider mb-1 group-hover:text-blue-400 transition-colors">
                               {{ field.key }}
                             </div>
-                            <div class="text-sm text-gray-900 break-words bg-gray-50 p-2 rounded border border-transparent group-hover:border-gray-200 transition-all">
+                            <div class="text-sm text-white/80 break-words bg-black/20 p-2 rounded border border-white/5 group-hover:border-white/20 transition-all">
                               <a *ngIf="isUrl(field.value); else plainValue" 
                                  [href]="field.value" 
                                  target="_blank" 
-                                 class="text-blue-600 hover:underline flex items-center gap-1">
+                                 class="text-blue-400 hover:underline flex items-center gap-1">
                                 Open Link
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                               </a>
@@ -168,7 +171,7 @@ interface CandidatesResponse {
                           </div>
                         </div>
                         
-                        <div *ngIf="getAllFields(candidate).length === 0" class="text-center py-4 text-gray-400 italic">
+                        <div *ngIf="getAllFields(candidate).length === 0" class="text-center py-4 text-white/30 italic">
                           No additional data available.
                         </div>
                       </div>
@@ -180,8 +183,8 @@ interface CandidatesResponse {
           </div>
         </div>
         
-        <div *ngIf="!loading && candidates.length === 0" class="text-center py-12 bg-white rounded-lg shadow-md mt-6">
-           <p class="text-gray-500 text-lg">No candidates found.</p>
+        <div *ngIf="!loading && candidates.length === 0" class="text-center py-12 bg-white/10 backdrop-blur-md rounded-lg border border-white/10 mt-6">
+           <p class="text-white/50 text-lg">No candidates found.</p>
         </div>
       </div>
     </div>
@@ -346,6 +349,368 @@ export class AllCandidatesComponent implements OnInit, OnDestroy {
     return (this.totalVotes / this.candidates.length).toFixed(1);
   }
 }
+
+
+
+
+
+
+
+
+
+
+// import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+// import { CommonModule } from '@angular/common';
+// import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+// import { Subject, takeUntil } from 'rxjs';
+
+// interface Candidate {
+//   id: string;
+//   tenantId: string;
+//   docType?: string;
+//   infoJson?: string;
+//   voteCount?: number;
+//   name?: string;
+//   email?: string;
+//   position?: string;
+//   description?: string;
+//   slogan?: string;
+//   photoUrl?: string;
+//   imageUrl?: string;
+//   [key: string]: any;
+// }
+
+// interface CandidatesResponse {
+//   success: boolean;
+//   tenantId: string;
+//   count: number;
+//   candidates: Candidate[];
+//   error?: string;
+// }
+
+// @Component({
+//   selector: 'app-all-candidates',
+//   standalone: true,
+//   imports: [CommonModule],
+//   template: `
+//     <div class="min-h-screen bg-gray-50 p-6">
+//       <div class="max-w-7xl mx-auto mb-8">
+//         <div class="flex items-center justify-between">
+//           <div>
+//             <h1 class="text-3xl font-bold text-gray-900">All Candidates</h1>
+//             <p class="text-gray-600 mt-1">Manage and view all registered candidates</p>
+//           </div>
+//           <div *ngIf="!loading && !error" class="text-right">
+//             <p class="text-sm text-gray-500">Organization ID</p>
+//             <p class="text-lg font-semibold text-gray-900">{{ tenantId || 'N/A' }}</p>
+//           </div>
+//         </div>
+//       </div>
+
+//       <div *ngIf="loading" class="max-w-7xl mx-auto">
+//         <div class="bg-white rounded-lg shadow-md p-8">
+//           <div class="flex flex-col items-center justify-center space-y-4">
+//             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+//             <p class="text-gray-600">Loading candidates...</p>
+//           </div>
+//         </div>
+//       </div>
+
+//       <div *ngIf="error && !loading" class="max-w-7xl mx-auto">
+//         <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+//           <h3 class="text-lg font-medium text-red-800">Error Loading Candidates</h3>
+//           <p class="mt-2 text-sm text-red-700">{{ errorMessage }}</p>
+//           <button (click)="loadCandidates()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+//             Try Again
+//           </button>
+//         </div>
+//       </div>
+
+//       <div *ngIf="!loading && !error && candidates.length > 0" class="max-w-7xl mx-auto">
+//         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+//           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+//             <div class="text-center p-4 bg-blue-50 rounded-lg">
+//               <p class="text-sm text-gray-600">Total Candidates</p>
+//               <p class="text-3xl font-bold text-blue-600">{{ candidates.length }}</p>
+//             </div>
+//             <div class="text-center p-4 bg-green-50 rounded-lg">
+//               <p class="text-sm text-gray-600">Total Votes</p>
+//               <p class="text-3xl font-bold text-green-600">{{ totalVotes }}</p>
+//             </div>
+//             <div class="text-center p-4 bg-purple-50 rounded-lg">
+//               <p class="text-sm text-gray-600">Average Votes</p>
+//               <p class="text-3xl font-bold text-purple-600">{{ averageVotes }}</p>
+//             </div>
+//           </div>
+//         </div>
+
+//         <div class="bg-white rounded-lg shadow-md overflow-hidden">
+//           <div class="overflow-x-auto">
+//             <table class="min-w-full divide-y divide-gray-200">
+//               <thead class="bg-gray-50">
+//                 <tr>
+//                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+//                     Image
+//                   </th>
+//                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                     Candidate ID
+//                   </th>
+//                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+//                     Votes
+//                   </th>
+//                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+//                     Details
+//                   </th>
+//                 </tr>
+//               </thead>
+//               <tbody class="bg-white divide-y divide-gray-200">
+//                 <ng-container *ngFor="let candidate of candidates">
+//                   <tr class="hover:bg-gray-50 transition-colors">
+//                     <td class="px-6 py-4 whitespace-nowrap">
+//                       <div class="h-12 w-12 rounded-full overflow-hidden border border-gray-200 shadow-sm">
+//                         <img 
+//                           [src]="getDisplayImage(candidate)" 
+//                           [alt]="candidate.id" 
+//                           class="h-full w-full object-cover bg-gray-100"
+//                           (error)="handleImageError($event)">
+//                       </div>
+//                     </td>
+                    
+//                     <td class="px-6 py-4 whitespace-nowrap">
+//                       <span class="text-sm font-mono text-gray-700 font-medium">{{ candidate.id }}</span>
+//                     </td>
+
+//                     <td class="px-6 py-4 whitespace-nowrap">
+//                       <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+//                         {{ candidate.voteCount || 0 }}
+//                       </span>
+//                     </td>
+
+//                     <td class="px-6 py-4 whitespace-nowrap text-sm">
+//                       <button 
+//                         (click)="toggleRow(candidate.id)"
+//                         class="text-blue-600 hover:text-blue-900 font-medium flex items-center gap-1 transition-all">
+//                         {{ isRowExpanded(candidate.id) ? 'Hide' : 'Show More' }}
+//                         <svg 
+//                           class="h-4 w-4 transform transition-transform duration-200" 
+//                           [class.rotate-180]="isRowExpanded(candidate.id)"
+//                           fill="none" viewBox="0 0 24 24" stroke="currentColor">
+//                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+//                         </svg>
+//                       </button>
+//                     </td>
+//                   </tr>
+                  
+//                   <tr *ngIf="isRowExpanded(candidate.id)" class="bg-gray-50 border-b border-gray-200">
+//                     <td colspan="4" class="px-6 py-6">
+//                       <div class="bg-white rounded-lg p-5 shadow-sm border border-gray-100">
+//                         <div class="flex items-center mb-4">
+//                           <h4 class="text-lg font-bold text-gray-800">Candidate Details</h4>
+//                           <span class="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">JSON Data</span>
+//                         </div>
+                        
+//                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+//                           <div *ngFor="let field of getAllFields(candidate)" class="group">
+//                             <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-blue-600 transition-colors">
+//                               {{ field.key }}
+//                             </div>
+//                             <div class="text-sm text-gray-900 break-words bg-gray-50 p-2 rounded border border-transparent group-hover:border-gray-200 transition-all">
+//                               <a *ngIf="isUrl(field.value); else plainValue" 
+//                                  [href]="field.value" 
+//                                  target="_blank" 
+//                                  class="text-blue-600 hover:underline flex items-center gap-1">
+//                                 Open Link
+//                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+//                               </a>
+//                               <ng-template #plainValue>
+//                                 {{ field.value }}
+//                               </ng-template>
+//                             </div>
+//                           </div>
+//                         </div>
+                        
+//                         <div *ngIf="getAllFields(candidate).length === 0" class="text-center py-4 text-gray-400 italic">
+//                           No additional data available.
+//                         </div>
+//                       </div>
+//                     </td>
+//                   </tr>
+//                 </ng-container>
+//               </tbody>
+//             </table>
+//           </div>
+//         </div>
+        
+//         <div *ngIf="!loading && candidates.length === 0" class="text-center py-12 bg-white rounded-lg shadow-md mt-6">
+//            <p class="text-gray-500 text-lg">No candidates found.</p>
+//         </div>
+//       </div>
+//     </div>
+//   `,
+//   styles: []
+// })
+// export class AllCandidatesComponent implements OnInit, OnDestroy {
+//   candidates: Candidate[] = [];
+//   loading = false;
+//   error = false;
+//   errorMessage = '';
+//   tenantId = '';
+  
+//   // Define fallback image path
+//   readonly fallbackImage = '/assets/images/noCandidate.png';
+
+//   expandedRows: Set<string> = new Set();
+//   private destroy$ = new Subject<void>();
+
+//   constructor(
+//     private http: HttpClient,
+//     private cdr: ChangeDetectorRef
+//   ) {}
+
+//   ngOnInit(): void {
+//     this.loadCandidates();
+//   }
+
+//   ngOnDestroy(): void {
+//     this.destroy$.next();
+//     this.destroy$.complete();
+//   }
+
+//   loadCandidates(): void {
+//     this.loading = true;
+//     this.error = false;
+    
+//     // Replace with your actual API endpoint
+//     this.http.get<CandidatesResponse>("http://localhost:3000/api/org-admin/candidates", {
+//       withCredentials: true
+//     })
+//     .pipe(takeUntil(this.destroy$))
+//     .subscribe({
+//       next: (response) => {
+//         if (response.success) {
+//           this.candidates = this.parseCandidates(response.candidates);
+//           this.tenantId = response.tenantId;
+//         } else {
+//           this.handleError(response.error || 'Unknown error');
+//         }
+//         this.loading = false;
+//         this.cdr.detectChanges();
+//       },
+//       error: (err) => {
+//         this.handleError(err.message || 'Connection failed');
+//         this.loading = false;
+//       }
+//     });
+//   }
+
+//   private parseCandidates(rawCandidates: any[]): Candidate[] {
+//     return (rawCandidates || []).map(candidate => {
+//       let parsedData = { ...candidate };
+//       if (candidate.infoJson) {
+//         try {
+//           const info = JSON.parse(candidate.infoJson);
+//           parsedData = { ...candidate, ...info };
+//           // Normalize image URL
+//           parsedData.imageUrl = info.photoUrl || info.imageUrl || candidate.imageUrl;
+//         } catch (e) {
+//           console.warn('JSON parse error', e);
+//         }
+//       }
+//       return parsedData;
+//     });
+//   }
+
+//   private handleError(msg: string) {
+//     this.error = true;
+//     this.errorMessage = msg;
+//   }
+
+//   // --- Logic for Image Display ---
+
+//   getDisplayImage(candidate: Candidate): string {
+//     // 1. Try candidate provided image
+//     if (candidate.imageUrl && candidate.imageUrl.trim() !== '') {
+//       return candidate.imageUrl;
+//     }
+//     if (candidate.photoUrl && candidate.photoUrl.trim() !== '') {
+//       return candidate.photoUrl;
+//     }
+    
+//     // 2. Fallback to local asset
+//     return this.fallbackImage;
+//   }
+
+//   handleImageError(event: any) {
+//     // If the image (user provided) fails to load, replace it with the fallback asset
+//     event.target.src = this.fallbackImage;
+//   }
+
+//   // --- Logic for "Rest of JSON Data" ---
+
+//   getAllFields(candidate: Candidate): { key: string; value: any }[] {
+//     const hiddenFields = [
+//       'id',          
+//       'voteCount',   
+//       'imageUrl',    
+//       'photoUrl',    
+//       'tenantId',    
+//       'docType',     
+//       'infoJson',    
+//       '_id'          
+//     ];
+    
+//     return Object.keys(candidate)
+//       .filter(key => 
+//         !hiddenFields.includes(key) && 
+//         candidate[key] !== undefined && 
+//         candidate[key] !== null && 
+//         candidate[key] !== '' &&
+//         typeof candidate[key] !== 'object'
+//       )
+//       .map(key => ({
+//         key: this.formatFieldName(key),
+//         value: candidate[key]
+//       }));
+//   }
+
+//   formatFieldName(key: string): string {
+//     return key
+//       .replace(/([A-Z])/g, ' $1')
+//       .replace(/^./, str => str.toUpperCase())
+//       .trim();
+//   }
+
+//   isUrl(value: any): boolean {
+//     return typeof value === 'string' && (value.startsWith('http://') || value.startsWith('https://'));
+//   }
+
+//   // --- Table Interaction ---
+
+//   toggleRow(id: string): void {
+//     if (this.expandedRows.has(id)) {
+//       this.expandedRows.delete(id);
+//     } else {
+//       this.expandedRows.add(id);
+//     }
+//   }
+
+//   isRowExpanded(id: string): boolean {
+//     return this.expandedRows.has(id);
+//   }
+
+//   get totalVotes(): number {
+//     return this.candidates.reduce((sum, c) => sum + (c.voteCount || 0), 0);
+//   }
+
+//   get averageVotes(): string {
+//     if (this.candidates.length === 0) return '0';
+//     return (this.totalVotes / this.candidates.length).toFixed(1);
+//   }
+// }
+
+
+
+
 //main feb1
 // import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 // import { CommonModule } from '@angular/common';

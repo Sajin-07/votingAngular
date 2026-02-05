@@ -1,0 +1,137 @@
+<section class="py-16 md:py-24 px-6 bg-gray-950 font-yaldevi">
+  <div class="container mx-auto max-w-7xl">
+    
+    <!-- Header -->
+    <div class="flex items-start md:items-center justify-between mb-12 gap-8">
+      <div>
+        <span class="px-4 py-2 rounded-full border border-white/40 text-white/70 font-light text-sm inline-block mb-4">
+          Upcoming
+        </span>
+        <div>
+          <h2 class="text-4xl md:text-5xl font-light text-white leading-tight">
+            Upcoming Events
+          </h2>
+          <p class="text-white/60 font-light text-lg mt-2">Upcoming events you don't want to miss!</p>
+        </div>
+      </div>
+      
+      <!-- Navigation Arrows -->
+      <div class="flex space-x-2 flex-shrink-0">
+        <button (click)="prevSlide()" 
+                class="w-10 h-10 md:w-12 md:h-12 bg-transparent hover:bg-white/10 border border-white/40 rounded-full flex items-center justify-center transition-all">
+          <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+        <button (click)="nextSlide()" 
+                class="w-10 h-10 md:w-12 md:h-12 bg-transparent hover:bg-white/10 border border-white/40 rounded-full flex items-center justify-center transition-all">
+          <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Carousel Container with 3 visible cards -->
+    <div class="relative flex items-center justify-center gap-6 mb-8 px-4">
+      
+      <!-- Left Card (Smaller, Semi-transparent) -->
+      <div class="group relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-500 opacity-50 hover:opacity-70 transform scale-90"
+           style="width: 280px; height: 400px; flex-shrink: 0;"
+           (click)="prevSlide()">
+        
+        <!-- External Link Icon -->
+        <div class="absolute top-4 right-4 z-10 w-10 h-10 bg-gray-700/60 backdrop-blur-sm rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+          </svg>
+        </div>
+
+        <!-- Event Image -->
+        <img src="/assets/images/upcoming-events/{{ visibleEvents[0]?.imageUrl }}" 
+             [alt]="visibleEvents[0]?.title"
+             class="w-full h-full object-cover">
+        
+        <!-- Gradient Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent"></div>
+
+        <!-- Event Info -->
+        <div class="absolute bottom-0 left-0 right-0 p-5 text-white">
+          <h3 class="text-lg font-light mb-2">{{ visibleEvents[0]?.title }}</h3>
+          <p class="text-white/80 text-sm font-light mb-1">{{ visibleEvents[0]?.school }}</p>
+          <p class="text-white/70 text-xs font-light">{{ visibleEvents[0]?.date }}</p>
+        </div>
+      </div>
+
+      <!-- Center Card (Larger, Full opacity - MAIN FOCUS) -->
+      <div class="group relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-500 shadow-2xl transform scale-100"
+           style="width: 380px; height: 520px; flex-shrink: 0;">
+        
+        <!-- External Link Icon -->
+        <div class="absolute top-4 right-4 z-10 w-12 h-12 bg-gray-700/60 backdrop-blur-sm rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+          </svg>
+        </div>
+
+        <!-- Event Image -->
+        <img src="/assets/images/upcoming-events/{{ visibleEvents[1]?.imageUrl }}" 
+             [alt]="visibleEvents[1]?.title"
+             class="w-full h-full object-cover">
+        
+        <!-- Gradient Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent"></div>
+
+        <!-- Event Info -->
+        <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
+          <h3 class="text-2xl md:text-3xl font-light mb-3">{{ visibleEvents[1]?.title }}</h3>
+          <p class="text-white/90 text-base font-light mb-2">{{ visibleEvents[1]?.school }}</p>
+          <p class="text-white/80 text-sm font-light">{{ visibleEvents[1]?.date }}</p>
+        </div>
+      </div>
+
+      <!-- Right Card (Smaller, Semi-transparent) -->
+      <div class="group relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-500 opacity-50 hover:opacity-70 transform scale-90"
+           style="width: 280px; height: 400px; flex-shrink: 0;"
+           (click)="nextSlide()">
+        
+        <!-- External Link Icon -->
+        <div class="absolute top-4 right-4 z-10 w-10 h-10 bg-gray-700/60 backdrop-blur-sm rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+          </svg>
+        </div>
+
+        <!-- Event Image -->
+        <img src="/assets/images/upcoming-events/{{ visibleEvents[2]?.imageUrl }}" 
+             [alt]="visibleEvents[2]?.title"
+             class="w-full h-full object-cover">
+        
+        <!-- Gradient Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent"></div>
+
+        <!-- Event Info -->
+        <div class="absolute bottom-0 left-0 right-0 p-5 text-white">
+          <h3 class="text-lg font-light mb-2">{{ visibleEvents[2]?.title }}</h3>
+          <p class="text-white/80 text-sm font-light mb-1">{{ visibleEvents[2]?.school }}</p>
+          <p class="text-white/70 text-xs font-light">{{ visibleEvents[2]?.date }}</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Dots Indicator (White dot in center/active position) -->
+    <div class="flex justify-center space-x-3">
+      <button *ngFor="let event of upcomingEvents; let i = index"
+              (click)="goToSlide(i)"
+              [class.bg-white]="i === currentSlide"
+              [class.bg-white/30]="i !== currentSlide"
+              [class.w-3]="i === currentSlide"
+              [class.h-3]="i === currentSlide"
+              [class.w-2]="i !== currentSlide"
+              [class.h-2]="i !== currentSlide"
+              class="rounded-full transition-all duration-300">
+      </button>
+    </div>
+  </div>
+</section>

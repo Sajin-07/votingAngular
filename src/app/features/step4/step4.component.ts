@@ -1,1265 +1,341 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { HttpClient, HttpClientModule, HttpErrorResponse } from '@angular/common/http';
-import { LucideAngularModule, Check, Fingerprint, Loader2 } from 'lucide-angular';
-import { AuthService } from '../../core/services/auth.service';
-import { SocketService } from '../../core/services/socket.service'; // Import Socket
-import { firstValueFrom, Subscription } from 'rxjs';
-
-const API_URL = 'http://localhost:3000';
+import { LucideAngularModule, Check } from 'lucide-angular';
+import { jsPDF } from 'jspdf';
+import { finalize } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+// Import Shared Components
+import { HeaderComponent } from '../../shared/components/header/header.component';
+import { StepperComponent } from '../../shared/components/stepper/stepper.component';
 
 @Component({
   selector: 'app-step4',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule, HttpClientModule],
-  templateUrl: './step4.component.html',
-  styleUrls: ['./step4.component.css']
+  imports: [
+    CommonModule, 
+    RouterModule, 
+    LucideAngularModule, 
+    HeaderComponent, 
+    StepperComponent
+  ],
+  template: `
+    <div
+      class="min-h-screen text-white p-6 md:p-12 flex flex-col font-inter"
+      [style.background]="'radial-gradient(circle at center, #535056 0%, #25242D 70%)'"
+    >
+      
+      <div class="max-w-7xl mx-auto w-full flex flex-col h-full">
+        
+        <app-header></app-header>
+
+        <app-stepper [currentStep]="4"></app-stepper>
+
+        <div class="flex-1 max-w-5xl mx-auto w-full mt-10 mb-10 font-inter flex flex-col items-center justify-center">
+            
+            <div class="w-full h-[360px] bg-[#00000054] border border-[#3E3D45] rounded-xl flex flex-col items-center justify-center relative shadow-[0px_4px_4px_0px_#00000040] p-6">
+                
+                <div class="mb-6">
+                    <img 
+                        [src]="shakeIcon" 
+                        alt="Success" 
+                        class="w-[100px] h-[69px] object-contain"
+                    />
+                </div>
+
+                <h2 class="text-[20px] font-bold text-white text-center leading-tight mb-2">
+                    Congratulations, your vote has been<br />cast successfully.
+                </h2>
+
+            </div>
+        </div>
+
+        <div class="flex flex-col-reverse md:flex-row justify-between max-w-5xl mx-auto w-full px-4 gap-4 mt-auto">
+          
+          <button
+            (click)="close()"
+            class="h-[60px] w-full md:w-[200px] uppercase font-semibold text-[18px] bg-gradient-to-r from-[#444249] to-[#222126] border-0 ring-0 outline-none shadow-md transition-all duration-200 hover:shadow-lg hover:from-[#4f4c55] hover:to-[#2a2830] active:scale-95 cursor-pointer rounded-lg text-white"
+          >
+            CLOSE
+          </button>
+         
+          <button
+            (click)="downloadReceipt()"
+            class="h-[60px] w-full md:w-[200px] uppercase font-semibold text-[18px] bg-gradient-to-r from-[#529F2D] to-[#1D3910] border-0 ring-0 outline-none shadow-md transition-all duration-200 hover:shadow-[0_8px_24px_rgba(82,159,45,0.45)] hover:from-[#5fb834] hover:to-[#234715] active:scale-95 cursor-pointer rounded-lg text-white"
+          >
+            DOWNLOAD RECEIPT
+          </button>
+
+        </div>
+
+      </div>
+    </div>
+  `,
+  styles: []
 })
-export class Step4Component implements OnInit, OnDestroy {
-  readonly icons = { Check, Fingerprint, Loader2 };
-  logoImg = '/dataSoft.svg';
-  
-  // --- STATE ---
-  isLoadingData = true; 
-  userProfileImg = 'assets/images/professional_headshot_of_a_man.png'; 
-  userName = 'User'; 
-  employeeId: string = ''; 
-  
-  fullUserData: any = null;
-  selectedCandidate: any = null;
+export class Step4Component implements OnInit {
+  readonly icons = { Check };
+  shakeIcon = 'assets/images/shake.png';
 
-  STEPS = [
-    { id: 1, label: "Scan QR Code", status: "completed" },
-    { id: 2, label: "Your Information", status: "completed" },
-    { id: 3, label: "Candidate Choice", status: "completed" },
-    { id: 4, label: "Finger Verification", status: "active" },
-    { id: 5, label: "Success Message", status: "pending" },
-  ];
+  // Default Data (Fallbacks)
+  receiptData = {
+    voterId: 'UNKNOWN',
+    timestamp: new Date().toLocaleString(),
+    txId: 'PENDING_VERIFICATION'
+  };
 
-  // --- TIMER & DATE STATE ---
-  timeLeft = "00:00:00";
-  currentDate = "";
-  private timerSub!: Subscription;
-
-  verificationStatus: 'idle' | 'scanning' | 'success' | 'error' = 'idle';
-  errorMessage: string = ''; 
-  fingerprintQuality: number = 0;
-  fingerprintScore: number = 0;
-
-  constructor(
-    private cdr: ChangeDetectorRef, 
-    private router: Router,
-    private http: HttpClient,
-    private authService: AuthService,
-    private socketService: SocketService // Injected Socket
-  ) {}
-
-  get activeIndex(): number {
-    return this.STEPS.findIndex((s) => s.status === "active");
-  }
+  constructor(private router: Router,private http: HttpClient) {}
 
   ngOnInit() {
-    // 1. Set Realtime Date
-    const dateOptions: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' };
-    this.currentDate = new Date().toLocaleDateString('en-GB', dateOptions);
+    // 1. Try to get data from storage
+    const storedData = sessionStorage.getItem('voteReceipt');
 
-    // 2. Connect Socket
-    this.socketService.connectVoter();
-
-    // 3. Subscribe to Timer
-    this.timerSub = this.socketService.timeLeft$.subscribe(seconds => {
-      this.updateTimeLeftString(seconds);
-
-      // REDIRECT LOGIC: If voting closed, kick user out
-      if (!this.socketService.isVotingOpen$.value) {
-        this.router.navigate(['/verify-qr']);
-      }
-
-      this.cdr.detectChanges();
-    });
-
-    // 4. Load Data
-    this.loadData();
-  }
-
-  ngOnDestroy() {
-    this.timerSub?.unsubscribe();
-  }
-
-  async loadData() {
-    try {
-      this.isLoadingData = true;
-      const candidateId = sessionStorage.getItem('voteCandidateId');
+    if (storedData) {
+      const parsed = JSON.parse(storedData);
       
-      if (!candidateId) {
-        this.router.navigate(['/step3']);
-        return;
-      }
+      // 2. Format the date
+      const dateObj = new Date(parsed.timestamp);
+      const formattedTime = dateObj.toLocaleString('en-GB', {
+        day: 'numeric', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
 
-      const userReq = this.http.get(`${API_URL}/api/employee/me`, { withCredentials: true });
-      const candidatesReq = this.http.get(`${API_URL}/api/candidates`, { withCredentials: true });
-
-      const [userData, candidatesData]: [any, any] = await Promise.all([
-        firstValueFrom(userReq),
-        firstValueFrom(candidatesReq)
-      ]);
-
-      if (userData) {
-        this.fullUserData = userData;
-        if (userData.name) this.userName = userData.name;
-        if (userData.photoUrl) this.userProfileImg = userData.photoUrl;
-        this.employeeId = (userData.dsId || userData.employeeId || userData.id || '').toString();
-      }
-
-      this.selectedCandidate = candidatesData.find((c: any) => c.id.toString() === candidateId.toString());
-
-      if (!this.selectedCandidate) {
-        this.router.navigate(['/step3']);
-      }
-
-    } catch (error) {
-      console.error("Error loading step 4 data", error);
-    } finally {
-      this.isLoadingData = false;
-      this.cdr.detectChanges();
-    }
-  }
-
-  onChangeVote() {
-    sessionStorage.removeItem('voteCandidateId');
-    this.authService.setStep(3);
-    this.router.navigate(['/step3']);
-  }
-
-  async handleCastVote() {
-    // 0. Safety Check: Is Voting Open?
-    if (!this.socketService.isVotingOpen$.value) {
-       this.router.navigate(['/verify-qr']);
-       return;
-    }
-
-    if (this.verificationStatus === 'success' || !this.selectedCandidate) return;
-    
-    // 1. Reset State
-    this.verificationStatus = 'scanning';
-    this.errorMessage = '';
-    this.fingerprintQuality = 0;
-    this.fingerprintScore = 0;
-    this.cdr.detectChanges();
-
-    try {
-      console.log('[VOTE] Step 1: Fetching employee data...');
-      
-      const employeeResp: any = await firstValueFrom(
-        this.http.get(`${API_URL}/api/employee/${this.employeeId}`, { withCredentials: true })
-      );
-
-      if (!employeeResp.hasBiometric) {
-        throw new Error('No fingerprint registered. Please register first.');
-      }
-
-      console.log('[VOTE] Step 2: Fetching stored fingerprint template...');
-
-      const fullEmployeeResp: any = await firstValueFrom(
-        this.http.get(`${API_URL}/api/employee/full/${this.employeeId}`, { withCredentials: true })
-      );
-
-      const storedTemplate = fullEmployeeResp.biometricHash;
-
-      if (!storedTemplate) {
-        throw new Error('Fingerprint template not found in blockchain.');
-      }
-
-      console.log('[VOTE] Step 3: Calling scanner for verification...');
-      
-      const verifyResp: any = await firstValueFrom(
-        this.http.post(`${API_URL}/api/fingerprint/verify`, {
-          template: storedTemplate
-        })
-      );
-
-      this.fingerprintQuality = verifyResp.quality || 0;
-      this.fingerprintScore = verifyResp.score || 0;
-
-      if (!verifyResp.isMatched) {
-        this.verificationStatus = 'error';
-        this.errorMessage = `Fingerprint verification failed! (Quality: ${this.fingerprintQuality}, Score: ${this.fingerprintScore})`;
-        console.error('[VOTE] ❌ Fingerprint does not match');
-        this.cdr.detectChanges();
-        return;
-      }
-
-      console.log('[VOTE] ✅ Fingerprint verified successfully!');
-      this.verificationStatus = 'success';
-      this.cdr.detectChanges();
-
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      console.log('[VOTE] Step 4: Submitting vote to blockchain...');
-
-      const voteResp: any = await firstValueFrom(
-        this.http.post(`${API_URL}/api/vote/submit`, {
-          candidateId: this.selectedCandidate.id
-        }, { withCredentials: true })
-      );
-
-      console.log('[VOTE] ✅ Vote submitted. TxID:', voteResp.txId);
-
-      const receiptData = {
-        employee: {
-          name: this.fullUserData?.name || this.userName,
-          id: this.employeeId,
-          department: this.fullUserData?.department || this.fullUserData?.designation || 'N/A',
-          email: this.fullUserData?.email || 'N/A',
-          role: this.fullUserData?.role || 'Employee'
-        },
-        candidate: {
-          name: this.selectedCandidate.name,
-          department: this.selectedCandidate.department || 'General'
-        },
-        vote: {
-          txId: voteResp.txId,
-          timestamp: new Date().toLocaleString(),
-          quality: this.fingerprintQuality,
-          score: this.fingerprintScore
-        }
+      // 3. Update the view variables with REAL data
+      this.receiptData = {
+        voterId: parsed.voterId,
+        timestamp: formattedTime,
+        txId: parsed.txId
       };
-      
-      sessionStorage.setItem('voteReceipt', JSON.stringify(receiptData));
-
-      setTimeout(() => {
-         this.authService.completeStep(4);
-         this.router.navigate(['/step5']);
-      }, 1000);
-
-    } catch (error: any) {
-      this.verificationStatus = 'error';
-      
-      if (error instanceof HttpErrorResponse) {
-        this.errorMessage = error.error?.error || "Server error occurred.";
-      } else {
-        this.errorMessage = error.message || "Verification failed.";
-      }
-      
-      if (this.errorMessage.includes('Scanner not reachable') || 
-          this.errorMessage.includes('ECONNREFUSED') ||
-          this.errorMessage.includes('503')) {
-        this.errorMessage = 'Cannot connect to fingerprint scanner. Please check if scanner is connected.';
-      }
-      
-      console.error("[VOTE] ❌ Error:", error);
-      this.cdr.detectChanges();
+    } else {
+      console.warn('No receipt data found in session storage.');
     }
   }
 
-  private updateTimeLeftString(totalSeconds: number) {
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = totalSeconds % 60;
-    this.timeLeft = `${this.pad(h)}:${this.pad(m)}:${this.pad(s)}`;
-  }
+  close() {
+  // Clear local session storage
+  sessionStorage.removeItem('voteReceipt');
 
-  private pad(val: number): string {
-    return val < 10 ? `0${val}` : `${val}`;
+  // Call the Logout API to clear the cookie
+  this.http.post('http://localhost:3000/api/voter/logout', {}, { withCredentials: true })
+    .pipe(
+      finalize(() => {
+        this.router.navigate(['/']); 
+      })
+    )
+    .subscribe({
+      next: () => console.log('Logged out successfully'),
+      error: (err) => console.error('Logout error', err)
+    });
+}
+
+  downloadReceipt() {
+    const doc = new jsPDF();
+    const data = this.receiptData;
+
+    // Header
+    doc.setFontSize(22);
+    doc.setTextColor(0, 0, 0);
+    doc.text('DataSoft Popularity Contest', 105, 20, { align: 'center' });
+
+    doc.setFontSize(14);
+    doc.setTextColor(82, 159, 45); // Green color
+    doc.text('Official Digital Vote Receipt', 105, 30, { align: 'center' });
+
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, 35, 190, 35);
+
+    let y = 50;
+
+    // Voter Details Section
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('Voter Information', 20, y);
+    y += 10;
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    
+    // Voter ID
+    doc.text(`Voter ID:`, 20, y);
+    doc.text(data.voterId, 60, y);
+    y += 8;
+
+    // Date
+    doc.text(`Time Recorded:`, 20, y);
+    doc.text(data.timestamp, 60, y);
+    y += 15;
+
+    // Blockchain Section
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('Blockchain Verification', 20, y);
+    y += 10;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Transaction Hash (TxID):', 20, y);
+    y += 6;
+
+    // Print Hash in Monospace font, wrapping text if too long
+    doc.setFont('courier', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(60, 60, 60);
+    
+    // Split long hash into multiple lines to fit page width
+    const splitHash = doc.splitTextToSize(data.txId, 170);
+    doc.text(splitHash, 20, y);
+
+    // Footer
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('This receipt is cryptographically secured on the Hyperledger Fabric network.', 105, 280, { align: 'center' });
+
+    doc.save(`Vote_Receipt_${data.voterId}.pdf`);
   }
 }
 
-
-// import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+// import { Component, OnInit } from '@angular/core';
 // import { CommonModule } from '@angular/common';
 // import { RouterModule, Router } from '@angular/router';
-// import { HttpClient, HttpClientModule, HttpErrorResponse } from '@angular/common/http';
-// import { LucideAngularModule, Check, Fingerprint, Loader2 } from 'lucide-angular';
-// import { AuthService } from '../../core/services/auth.service';
-// import { SocketService } from '../../core/services/socket.service'; // Import Socket
-// import { firstValueFrom, Subscription } from 'rxjs';
+// import { LucideAngularModule, Check } from 'lucide-angular';
+// import { jsPDF } from 'jspdf';
 
-// const API_URL = 'http://localhost:3000';
+// interface Step {
+//   id: number;
+//   label: string;
+//   status: 'completed' | 'active' | 'pending';
+// }
 
 // @Component({
 //   selector: 'app-step4',
 //   standalone: true,
-//   imports: [CommonModule, RouterModule, LucideAngularModule, HttpClientModule],
+//   imports: [CommonModule, RouterModule, LucideAngularModule],
 //   templateUrl: './step4.component.html',
-//   styleUrls: ['./step4.component.css']
+//   styles: [] // Keep your styles or css file link
 // })
-// export class Step4Component implements OnInit, OnDestroy {
-//   readonly icons = { Check, Fingerprint, Loader2 };
-//   logoImg = '/dataSoft.svg';
-  
-//   // --- STATE ---
-//   isLoadingData = true; 
-//   userProfileImg = 'assets/images/professional_headshot_of_a_man.png'; 
-//   userName = 'User'; 
-//   employeeId: string = ''; 
-  
-//   fullUserData: any = null;
-//   selectedCandidate: any = null;
+// export class Step4Component implements OnInit {
+//   readonly icons = { Check };
 
-//   STEPS = [
-//     { id: 1, label: "Scan QR Code", status: "completed" },
-//     { id: 2, label: "Your Information", status: "completed" },
-//     { id: 3, label: "Candidate Choice", status: "completed" },
-//     { id: 4, label: "Finger Verification", status: "active" },
-//     { id: 5, label: "Success Message", status: "pending" },
+//   logoImg = '/dataSoft.svg';
+//   shakeIcon = 'assets/images/shake.png';
+
+//   timeLeft = '00:00:00'; 
+//   currentDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+//   // Default Data (Fallbacks)
+//   receiptData = {
+//     voterId: 'UNKNOWN',
+//     timestamp: new Date().toLocaleString(),
+//     txId: 'PENDING_VERIFICATION'
+//   };
+
+//   STEPS: Step[] = [
+//     { id: 1, label: 'Scan QR Code', status: 'completed' },
+//     { id: 2, label: 'Your Information', status: 'completed' },
+//     { id: 3, label: 'Candidate Choice', status: 'completed' },
+//     { id: 4, label: 'Success Message', status: 'active' }
 //   ];
 
-//   // --- TIMER STATE (Socket) ---
-//   timeLeft = "00:00:00";
-//   private timerSub!: Subscription;
-
-//   verificationStatus: 'idle' | 'scanning' | 'success' | 'error' = 'idle';
-//   errorMessage: string = ''; 
-//   fingerprintQuality: number = 0;
-//   fingerprintScore: number = 0;
-
-//   constructor(
-//     private cdr: ChangeDetectorRef, 
-//     private router: Router,
-//     private http: HttpClient,
-//     private authService: AuthService,
-//     private socketService: SocketService // Injected Socket
-//   ) {}
-
-//   get activeIndex(): number {
-//     return this.STEPS.findIndex((s) => s.status === "active");
-//   }
+//   constructor(private router: Router) {}
 
 //   ngOnInit() {
-//     // 1. Connect Socket
-//     this.socketService.connectVoter();
+//   // 1. Try to get data from storage
+//   const storedData = sessionStorage.getItem('voteReceipt');
 
-//     // 2. Subscribe to Timer
-//     this.timerSub = this.socketService.timeLeft$.subscribe(seconds => {
-//       this.updateTimeLeftString(seconds);
-//       this.cdr.detectChanges();
+//   if (storedData) {
+//     const parsed = JSON.parse(storedData);
+    
+//     // 2. Format the date
+//     const dateObj = new Date(parsed.timestamp);
+//     const formattedTime = dateObj.toLocaleString('en-GB', {
+//       day: 'numeric', month: 'short', year: 'numeric',
+//       hour: '2-digit', minute: '2-digit', second: '2-digit'
 //     });
 
-//     // 3. Load Data
-//     this.loadData();
-//   }
-
-//   ngOnDestroy() {
-//     this.timerSub?.unsubscribe();
-//   }
-
-//   async loadData() {
-//     try {
-//       this.isLoadingData = true;
-//       const candidateId = sessionStorage.getItem('voteCandidateId');
-      
-//       if (!candidateId) {
-//         this.router.navigate(['/step3']);
-//         return;
-//       }
-
-//       const userReq = this.http.get(`${API_URL}/api/employee/me`, { withCredentials: true });
-//       const candidatesReq = this.http.get(`${API_URL}/api/candidates`, { withCredentials: true });
-
-//       const [userData, candidatesData]: [any, any] = await Promise.all([
-//         firstValueFrom(userReq),
-//         firstValueFrom(candidatesReq)
-//       ]);
-
-//       if (userData) {
-//         this.fullUserData = userData;
-//         if (userData.name) this.userName = userData.name;
-//         if (userData.photoUrl) this.userProfileImg = userData.photoUrl;
-//         this.employeeId = (userData.dsId || userData.employeeId || userData.id || '').toString();
-//       }
-
-//       this.selectedCandidate = candidatesData.find((c: any) => c.id.toString() === candidateId.toString());
-
-//       if (!this.selectedCandidate) {
-//         this.router.navigate(['/step3']);
-//       }
-
-//     } catch (error) {
-//       console.error("Error loading step 4 data", error);
-//     } finally {
-//       this.isLoadingData = false;
-//       this.cdr.detectChanges();
-//     }
-//   }
-
-//   onChangeVote() {
-//     sessionStorage.removeItem('voteCandidateId');
-//     this.authService.setStep(3);
-//     this.router.navigate(['/step3']);
-//   }
-
-//   async handleCastVote() {
-//     if (this.verificationStatus === 'success' || !this.selectedCandidate) return;
-    
-//     // 1. Reset State
-//     this.verificationStatus = 'scanning';
-//     this.errorMessage = '';
-//     this.fingerprintQuality = 0;
-//     this.fingerprintScore = 0;
-//     this.cdr.detectChanges();
-
-//     try {
-//       console.log('[VOTE] Step 1: Fetching employee data...');
-      
-//       // 2. Get employee data to check if biometric exists
-//       const employeeResp: any = await firstValueFrom(
-//         this.http.get(`${API_URL}/api/employee/${this.employeeId}`, { withCredentials: true })
-//       );
-
-//       if (!employeeResp.hasBiometric) {
-//         throw new Error('No fingerprint registered. Please register first.');
-//       }
-
-//       console.log('[VOTE] Step 2: Fetching stored fingerprint template...');
-
-//       // 3. Get full employee data with biometric hash from blockchain
-//       const fullEmployeeResp: any = await firstValueFrom(
-//         this.http.get(`${API_URL}/api/employee/full/${this.employeeId}`, { withCredentials: true })
-//       );
-
-//       const storedTemplate = fullEmployeeResp.biometricHash;
-
-//       if (!storedTemplate) {
-//         throw new Error('Fingerprint template not found in blockchain.');
-//       }
-
-//       console.log('[VOTE] Step 3: Calling scanner for verification...');
-      
-//       // 4. Call verify
-//       const verifyResp: any = await firstValueFrom(
-//         this.http.post(`${API_URL}/api/fingerprint/verify`, {
-//           template: storedTemplate
-//         })
-//       );
-
-//       this.fingerprintQuality = verifyResp.quality || 0;
-//       this.fingerprintScore = verifyResp.score || 0;
-
-//       // 5. Check if fingerprint matched
-//       if (!verifyResp.isMatched) {
-//         this.verificationStatus = 'error';
-//         this.errorMessage = `Fingerprint verification failed! (Quality: ${this.fingerprintQuality}, Score: ${this.fingerprintScore})`;
-//         console.error('[VOTE] ❌ Fingerprint does not match');
-//         this.cdr.detectChanges();
-//         return;
-//       }
-
-//       // 6. FINGERPRINT MATCHED
-//       console.log('[VOTE] ✅ Fingerprint verified successfully!');
-//       this.verificationStatus = 'success';
-//       this.cdr.detectChanges();
-
-//       await new Promise(resolve => setTimeout(resolve, 1500));
-
-//       console.log('[VOTE] Step 4: Submitting vote to blockchain...');
-
-//       // 7. Submit vote
-//       const voteResp: any = await firstValueFrom(
-//         this.http.post(`${API_URL}/api/vote/submit`, {
-//           candidateId: this.selectedCandidate.id
-//         }, { withCredentials: true })
-//       );
-
-//       console.log('[VOTE] ✅ Vote submitted. TxID:', voteResp.txId);
-
-//       // 8. Create receipt
-//       const receiptData = {
-//         employee: {
-//           name: this.fullUserData?.name || this.userName,
-//           id: this.employeeId,
-//           department: this.fullUserData?.department || this.fullUserData?.designation || 'N/A',
-//           email: this.fullUserData?.email || 'N/A',
-//           role: this.fullUserData?.role || 'Employee'
-//         },
-//         candidate: {
-//           name: this.selectedCandidate.name,
-//           department: this.selectedCandidate.department || 'General'
-//         },
-//         vote: {
-//           txId: voteResp.txId,
-//           timestamp: new Date().toLocaleString(),
-//           quality: this.fingerprintQuality,
-//           score: this.fingerprintScore
-//         }
-//       };
-      
-//       sessionStorage.setItem('voteReceipt', JSON.stringify(receiptData));
-
-//       // 9. Navigate
-//       setTimeout(() => {
-//          this.authService.completeStep(4);
-//          this.router.navigate(['/step5']);
-//       }, 1000);
-
-//     } catch (error: any) {
-//       this.verificationStatus = 'error';
-      
-//       if (error instanceof HttpErrorResponse) {
-//         this.errorMessage = error.error?.error || "Server error occurred.";
-//       } else {
-//         this.errorMessage = error.message || "Verification failed.";
-//       }
-      
-//       if (this.errorMessage.includes('Scanner not reachable') || 
-//           this.errorMessage.includes('ECONNREFUSED') ||
-//           this.errorMessage.includes('503')) {
-//         this.errorMessage = 'Cannot connect to fingerprint scanner. Please check if scanner is connected.';
-//       }
-      
-//       console.error("[VOTE] ❌ Error:", error);
-//       this.cdr.detectChanges();
-//     }
-//   }
-
-//   private updateTimeLeftString(totalSeconds: number) {
-//     const h = Math.floor(totalSeconds / 3600);
-//     const m = Math.floor((totalSeconds % 3600) / 60);
-//     const s = totalSeconds % 60;
-//     this.timeLeft = `${this.pad(h)}:${this.pad(m)}:${this.pad(s)}`;
-//   }
-
-//   private pad(val: number): string {
-//     return val < 10 ? `0${val}` : `${val}`;
+//     // 3. Update the view variables with REAL data
+//     this.receiptData = {
+//       voterId: parsed.voterId,
+//       timestamp: formattedTime,
+//       txId: parsed.txId
+//     };
+//   } else {
+//     // Optional: If no data found, maybe redirect back to start?
+//     console.warn('No receipt data found in session storage.');
 //   }
 // }
 
-// //step4.ts
-// import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-// import { CommonModule } from '@angular/common';
-// import { RouterModule, Router } from '@angular/router';
-// import { HttpClient, HttpClientModule, HttpErrorResponse } from '@angular/common/http';
-// import { LucideAngularModule, Check, Fingerprint, Loader2 } from 'lucide-angular';
-// import { AuthService } from '../../core/services/auth.service';
-// import { firstValueFrom } from 'rxjs';
-
-// const API_URL = 'http://localhost:3000';
-
-// @Component({
-//   selector: 'app-step4',
-//   standalone: true,
-//   imports: [CommonModule, RouterModule, LucideAngularModule, HttpClientModule],
-//   templateUrl: './step4.component.html',
-//   styleUrls: ['./step4.component.css']
-// })
-// export class Step4Component implements OnInit, OnDestroy {
-//   readonly icons = { Check, Fingerprint, Loader2 };
-//   logoImg = '/dataSoft.svg';
-  
-//   // --- STATE ---
-//   isLoadingData = true; 
-//   userProfileImg = 'assets/images/professional_headshot_of_a_man.png'; 
-//   userName = 'User'; 
-//   employeeId: string = ''; 
-  
-//   fullUserData: any = null;
-//   selectedCandidate: any = null;
-
-//   STEPS = [
-//     { id: 1, label: "Scan QR Code", status: "completed" },
-//     { id: 2, label: "Your Information", status: "completed" },
-//     { id: 3, label: "Candidate Choice", status: "completed" },
-//     { id: 4, label: "Finger Verification", status: "active" },
-//     { id: 5, label: "Success Message", status: "pending" },
-//   ];
-
-//   timeLeft = "05:45:35";
-//   verificationStatus: 'idle' | 'scanning' | 'success' | 'error' = 'idle';
-//   errorMessage: string = ''; 
-//   fingerprintQuality: number = 0;
-//   fingerprintScore: number = 0;
-  
-//   private timerId: any;
-//   private totalSeconds = 0;
-
-//   constructor(
-//     private cdr: ChangeDetectorRef, 
-//     private router: Router,
-//     private http: HttpClient,
-//     private authService: AuthService
-//   ) {}
-
-//   get activeIndex(): number {
-//     return this.STEPS.findIndex((s) => s.status === "active");
+//   close() {
+//     // Clear session and go home
+//     sessionStorage.removeItem('voteReceipt');
+//     this.router.navigate(['/']);
 //   }
 
-//   ngOnInit() {
-//     const [h, m, s] = this.timeLeft.split(":").map(Number);
-//     this.totalSeconds = (h * 3600) + (m * 60) + s;
-//     this.startTimer();
-//     this.loadData();
-//   }
+//   downloadReceipt() {
+//     const doc = new jsPDF();
+//     const data = this.receiptData;
 
-//   ngOnDestroy() {
-//     if (this.timerId) clearInterval(this.timerId);
-//   }
+//     // Header
+//     doc.setFontSize(22);
+//     doc.setTextColor(0, 0, 0);
+//     doc.text('DataSoft Popularity Contest', 105, 20, { align: 'center' });
 
-//   async loadData() {
-//     try {
-//       this.isLoadingData = true;
-//       const candidateId = sessionStorage.getItem('voteCandidateId');
-      
-//       if (!candidateId) {
-//         this.router.navigate(['/step3']);
-//         return;
-//       }
+//     doc.setFontSize(14);
+//     doc.setTextColor(82, 159, 45); // Green color
+//     doc.text('Official Digital Vote Receipt', 105, 30, { align: 'center' });
 
-//       const userReq = this.http.get(`${API_URL}/api/employee/me`, { withCredentials: true });
-//       const candidatesReq = this.http.get(`${API_URL}/api/candidates`, { withCredentials: true });
+//     doc.setDrawColor(200, 200, 200);
+//     doc.line(20, 35, 190, 35);
 
-//       const [userData, candidatesData]: [any, any] = await Promise.all([
-//         firstValueFrom(userReq),
-//         firstValueFrom(candidatesReq)
-//       ]);
+//     let y = 50;
 
-//       if (userData) {
-//         this.fullUserData = userData;
-//         if (userData.name) this.userName = userData.name;
-//         if (userData.photoUrl) this.userProfileImg = userData.photoUrl;
-//         this.employeeId = (userData.dsId || userData.employeeId || userData.id || '').toString();
-        
-//         console.log('Logged in User Data:', userData);
-//         console.log('Employee ID set to:', this.employeeId);
-//       }
+//     // Voter Details Section
+//     doc.setTextColor(0, 0, 0);
+//     doc.setFont('helvetica', 'bold');
+//     doc.setFontSize(14);
+//     doc.text('Voter Information', 20, y);
+//     y += 10;
 
-//       this.selectedCandidate = candidatesData.find((c: any) => c.id.toString() === candidateId.toString());
-
-//       if (!this.selectedCandidate) {
-//         this.router.navigate(['/step3']);
-//       }
-
-//     } catch (error) {
-//       console.error("Error loading step 4 data", error);
-//     } finally {
-//       this.isLoadingData = false;
-//       this.cdr.detectChanges();
-//     }
-//   }
-
-//   onChangeVote() {
-//     sessionStorage.removeItem('voteCandidateId');
-//     this.authService.setStep(3);
-//     this.router.navigate(['/step3']);
-//   }
-
-//   async handleCastVote() {
-//     if (this.verificationStatus === 'success' || !this.selectedCandidate) return;
+//     doc.setFontSize(11);
+//     doc.setFont('helvetica', 'normal');
     
-//     // 1. Reset State
-//     this.verificationStatus = 'scanning';
-//     this.errorMessage = '';
-//     this.fingerprintQuality = 0;
-//     this.fingerprintScore = 0;
-//     this.cdr.detectChanges();
+//     // Voter ID
+//     doc.text(`Voter ID:`, 20, y);
+//     doc.text(data.voterId, 60, y);
+//     y += 8;
 
-//     try {
-//       console.log('[VOTE] Step 1: Fetching employee data...');
-      
-//       // 2. Get employee data to check if biometric exists
-//       const employeeResp: any = await firstValueFrom(
-//         this.http.get(`${API_URL}/api/employee/${this.employeeId}`, { withCredentials: true })
-//       );
+//     // Date
+//     doc.text(`Time Recorded:`, 20, y);
+//     doc.text(data.timestamp, 60, y);
+//     y += 15;
 
-//       console.log('[VOTE] Employee data:', employeeResp);
+//     // Blockchain Section
+//     doc.setFont('helvetica', 'bold');
+//     doc.setFontSize(14);
+//     doc.text('Blockchain Verification', 20, y);
+//     y += 10;
 
-//       if (!employeeResp.hasBiometric) {
-//         throw new Error('No fingerprint registered. Please register first.');
-//       }
+//     doc.setFontSize(10);
+//     doc.setFont('helvetica', 'normal');
+//     doc.text('Transaction Hash (TxID):', 20, y);
+//     y += 6;
 
-//       console.log('[VOTE] Step 2: Fetching stored fingerprint template...');
+//     // Print Hash in Monospace font, wrapping text if too long
+//     doc.setFont('courier', 'normal');
+//     doc.setFontSize(9);
+//     doc.setTextColor(60, 60, 60);
+    
+//     // Split long hash into multiple lines to fit page width
+//     const splitHash = doc.splitTextToSize(data.txId, 170);
+//     doc.text(splitHash, 20, y);
 
-//       // 3. Get full employee data with biometric hash from blockchain
-//       const fullEmployeeResp: any = await firstValueFrom(
-//         this.http.get(`${API_URL}/api/employee/full/${this.employeeId}`, { withCredentials: true })
-//       );
+//     // Footer
+//     doc.setFont('helvetica', 'italic');
+//     doc.setFontSize(8);
+//     doc.setTextColor(150, 150, 150);
+//     doc.text('This receipt is cryptographically secured on the Hyperledger Fabric network.', 105, 280, { align: 'center' });
 
-//       const storedTemplate = fullEmployeeResp.biometricHash;
-
-//       if (!storedTemplate) {
-//         throw new Error('Fingerprint template not found in blockchain.');
-//       }
-
-//       console.log('[VOTE] Step 3: Calling scanner for verification...');
-//       console.log('[VOTE] Please place your finger on the scanner now...');
-
-//       // 4. Call /api/fingerprint/verify with stored template
-//       const verifyResp: any = await firstValueFrom(
-//         this.http.post(`${API_URL}/api/fingerprint/verify`, {
-//           template: storedTemplate
-//         })
-//       );
-
-//       console.log('[VOTE] Scanner response:', verifyResp);
-
-//       this.fingerprintQuality = verifyResp.quality || 0;
-//       this.fingerprintScore = verifyResp.score || 0;
-
-//       // 5. Check if fingerprint matched
-//       if (!verifyResp.isMatched) {
-//         // FINGERPRINT DOES NOT MATCH
-//         this.verificationStatus = 'error';
-//         this.errorMessage = `Fingerprint verification failed! (Quality: ${this.fingerprintQuality}, Score: ${this.fingerprintScore})`;
-//         console.error('[VOTE] ❌ Fingerprint does not match');
-//         this.cdr.detectChanges();
-//         return;
-//       }
-
-//       // 6. FINGERPRINT MATCHED - Show success
-//       console.log('[VOTE] ✅ Fingerprint verified successfully!');
-//       this.verificationStatus = 'success';
-//       this.cdr.detectChanges();
-
-//       // Small delay to show success message
-//       await new Promise(resolve => setTimeout(resolve, 1500));
-
-//       console.log('[VOTE] Step 4: Submitting vote to blockchain...');
-
-//       // 7. Submit vote to blockchain
-//       const voteResp: any = await firstValueFrom(
-//         this.http.post(`${API_URL}/api/vote/submit`, {
-//           candidateId: this.selectedCandidate.id
-//         }, {
-//           withCredentials: true
-//         })
-//       );
-
-//       console.log('[VOTE] ✅ Vote submitted. TxID:', voteResp.txId);
-
-//       // 8. Create receipt data for Step 5
-//       const receiptData = {
-//         employee: {
-//           name: this.fullUserData?.name || this.userName,
-//           id: this.employeeId,
-//           department: this.fullUserData?.department || this.fullUserData?.designation || 'N/A',
-//           email: this.fullUserData?.email || 'N/A',
-//           role: this.fullUserData?.role || 'Employee'
-//         },
-//         candidate: {
-//           name: this.selectedCandidate.name,
-//           department: this.selectedCandidate.department || 'General'
-//         },
-//         vote: {
-//           txId: voteResp.txId,
-//           timestamp: new Date().toLocaleString(),
-//           quality: this.fingerprintQuality,
-//           score: this.fingerprintScore
-//         }
-//       };
-      
-//       sessionStorage.setItem('voteReceipt', JSON.stringify(receiptData));
-
-//       // 9. Navigate to success page
-//       setTimeout(() => {
-//          this.authService.completeStep(4);
-//          this.router.navigate(['/step5']);
-//       }, 1000);
-
-//     } catch (error: any) {
-//       // 10. ERROR HANDLING
-//       this.verificationStatus = 'error';
-      
-//       if (error instanceof HttpErrorResponse) {
-//         this.errorMessage = error.error?.error || "Server error occurred.";
-//       } else {
-//         this.errorMessage = error.message || "Verification failed.";
-//       }
-      
-//       // Special handling for scanner connection issues
-//       if (this.errorMessage.includes('Scanner not reachable') || 
-//           this.errorMessage.includes('ECONNREFUSED') ||
-//           this.errorMessage.includes('503')) {
-//         this.errorMessage = 'Cannot connect to fingerprint scanner. Please check if scanner is connected.';
-//       }
-      
-//       console.error("[VOTE] ❌ Error:", error);
-//       this.cdr.detectChanges();
-//     }
-//   }
-
-//   // --- TIMER ---
-//   startTimer() {
-//     this.timerId = setInterval(() => {
-//       if (this.totalSeconds > 0) {
-//         this.totalSeconds--;
-//         this.updateTimeLeftString();
-//         this.cdr.detectChanges();
-//       } else {
-//         clearInterval(this.timerId);
-//       }
-//     }, 1000);
-//   }
-
-//   private updateTimeLeftString() {
-//     const h = Math.floor(this.totalSeconds / 3600);
-//     const m = Math.floor((this.totalSeconds % 3600) / 60);
-//     const s = this.totalSeconds % 60;
-//     this.timeLeft = `${this.pad(h)}:${this.pad(m)}:${this.pad(s)}`;
-//   }
-
-//   private pad(val: number): string {
-//     return val < 10 ? `0${val}` : `${val}`;
+//     doc.save(`Vote_Receipt_${data.voterId}.pdf`);
 //   }
 // }
-
-
-
-//last worked
-// import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-// import { CommonModule } from '@angular/common';
-// import { RouterModule, Router } from '@angular/router';
-// import { HttpClient, HttpClientModule, HttpErrorResponse } from '@angular/common/http';
-// import { LucideAngularModule, Check, Fingerprint, Loader2 } from 'lucide-angular';
-// import { AuthService } from '../../core/services/auth.service';
-// import { firstValueFrom } from 'rxjs';
-// import { startAuthentication } from '@simplewebauthn/browser';
-
-// const API_URL = 'http://localhost:3000';
-
-// @Component({
-//   selector: 'app-step4',
-//   standalone: true,
-//   imports: [CommonModule, RouterModule, LucideAngularModule, HttpClientModule],
-//   templateUrl: './step4.component.html',
-//   styleUrls: ['./step4.component.css']
-// })
-// export class Step4Component implements OnInit, OnDestroy {
-//   readonly icons = { Check, Fingerprint, Loader2 };
-//   logoImg = '/dataSoft.svg';
-  
-//   // --- STATE ---
-//   isLoadingData = true; 
-//   userProfileImg = 'assets/images/professional_headshot_of_a_man.png'; 
-//   userName = 'User'; 
-//   employeeId: string = ''; 
-  
-//   // [NEW] Store full user object for the detailed receipt
-//   fullUserData: any = null;
-
-//   selectedCandidate: any = null;
-
-//   STEPS = [
-//     { id: 1, label: "Login", status: "completed" },
-//     { id: 2, label: "Your Information", status: "completed" },
-//     { id: 3, label: "Candidate Choice", status: "completed" },
-//     { id: 4, label: "Finger Verification", status: "active" },
-//     { id: 5, label: "Success Message", status: "pending" },
-//   ];
-
-//   timeLeft = "05:45:35";
-//   verificationStatus: 'idle' | 'scanning' | 'success' | 'error' = 'idle';
-//   errorMessage: string = ''; 
-  
-//   private timerId: any;
-//   private totalSeconds = 0;
-
-//   constructor(
-//     private cdr: ChangeDetectorRef, 
-//     private router: Router,
-//     private http: HttpClient,
-//     private authService: AuthService
-//   ) {}
-
-//   get activeIndex(): number {
-//     return this.STEPS.findIndex((s) => s.status === "active");
-//   }
-
-//   ngOnInit() {
-//     const [h, m, s] = this.timeLeft.split(":").map(Number);
-//     this.totalSeconds = (h * 3600) + (m * 60) + s;
-//     this.startTimer();
-//     this.loadData();
-//   }
-
-//   ngOnDestroy() {
-//     if (this.timerId) clearInterval(this.timerId);
-//   }
-
-//   async loadData() {
-//     try {
-//       this.isLoadingData = true;
-//       const candidateId = sessionStorage.getItem('voteCandidateId');
-      
-//       if (!candidateId) {
-//         this.router.navigate(['/step3']);
-//         return;
-//       }
-
-//       const userReq = this.http.get(`${API_URL}/api/employee/me`, { withCredentials: true });
-//       const candidatesReq = this.http.get(`${API_URL}/api/candidates`, { withCredentials: true });
-
-//       const [userData, candidatesData]: [any, any] = await Promise.all([
-//         firstValueFrom(userReq),
-//         firstValueFrom(candidatesReq)
-//       ]);
-
-//       if (userData) {
-//         // [UPDATED] Save full user data for PDF receipt
-//         this.fullUserData = userData;
-
-//         if (userData.name) this.userName = userData.name;
-//         if (userData.photoUrl) this.userProfileImg = userData.photoUrl;
-        
-//         // Robust ID check
-//         this.employeeId = (userData.dsId || userData.employeeId || userData.id || '').toString();
-        
-//         console.log('Logged in User Data:', userData);
-//         console.log('Employee ID set to:', this.employeeId);
-//       }
-
-//       this.selectedCandidate = candidatesData.find((c: any) => c.id.toString() === candidateId.toString());
-
-//       if (!this.selectedCandidate) {
-//         this.router.navigate(['/step3']);
-//       }
-
-//     } catch (error) {
-//       console.error("Error loading step 4 data", error);
-//     } finally {
-//       this.isLoadingData = false;
-//       this.cdr.detectChanges();
-//     }
-//   }
-
-//   // --- ACTIONS ---
-
-//   onChangeVote() {
-//     sessionStorage.removeItem('voteCandidateId');
-//     this.authService.setStep(3);
-//     this.router.navigate(['/step3']);
-//   }
-
-//   async handleCastVote() {
-//     if (this.verificationStatus === 'success' || !this.selectedCandidate) return;
-    
-//     // 1. Reset State
-//     this.verificationStatus = 'scanning';
-//     this.errorMessage = '';
-//     this.cdr.detectChanges();
-
-//     try {
-//       // 2. Request Auth Options
-//       const optionsResp = await firstValueFrom(
-//         this.http.post<any>(`${API_URL}/auth/login/options`, { dsId: this.employeeId })
-//       );
-
-//       // 3. Trigger Browser Biometric Prompt
-//       let asseResp;
-//       try {
-//         asseResp = await startAuthentication(optionsResp);
-//       } catch (err: any) {
-//         console.error("Biometric start error", err);
-//         throw new Error("Biometric scan failed or cancelled.");
-//       }
-
-//       // 4. Verify Vote & Get Transaction Hash
-//       // [UPDATED] We expect the backend to return { verified: true, txId: "..." }
-//       const verifyResp: any = await firstValueFrom(
-//         this.http.post(`${API_URL}/auth/vote/verify`, {
-//           dsId: this.employeeId,
-//           body: asseResp,
-//           candidateId: this.selectedCandidate.id
-//         })
-//       );
-
-//       // 5. SUCCESS
-//       this.verificationStatus = 'success';
-//       this.cdr.detectChanges();
-
-//       // [UPDATED] Create Detailed Receipt Data for Step 5
-//       const receiptData = {
-//         employee: {
-//           name: this.fullUserData?.name || this.userName,
-//           id: this.employeeId,
-//           department: this.fullUserData?.department || 'N/A', // Using loaded data
-//           email: this.fullUserData?.email || 'N/A',
-//           role: this.fullUserData?.role || 'Employee'
-//         },
-//         candidate: {
-//           name: this.selectedCandidate.name,
-//           department: this.selectedCandidate.department || 'General'
-//         },
-//         vote: {
-//           txId: verifyResp.txId, // The Real Blockchain Hash
-//           timestamp: new Date().toLocaleString()
-//         }
-//       };
-      
-//       // Save to session storage
-//       sessionStorage.setItem('voteReceipt', JSON.stringify(receiptData));
-
-//       setTimeout(() => {
-//          this.authService.completeStep(4);
-//          this.router.navigate(['/step5']);
-//       }, 2000);
-
-//     } catch (error: any) {
-//       // 6. FAIL
-//       this.verificationStatus = 'error';
-      
-//       if (error instanceof HttpErrorResponse) {
-//         this.errorMessage = error.error?.error || "Verification server error.";
-//       } else {
-//         this.errorMessage = error.message || "Verification failed.";
-//       }
-      
-//       console.error("Vote failed:", error);
-//       this.cdr.detectChanges();
-//     }
-//   }
-
-//   // --- TIMER ---
-//   startTimer() {
-//     this.timerId = setInterval(() => {
-//       if (this.totalSeconds > 0) {
-//         this.totalSeconds--;
-//         this.updateTimeLeftString();
-//         this.cdr.detectChanges();
-//       } else {
-//         clearInterval(this.timerId);
-//       }
-//     }, 1000);
-//   }
-
-//   private updateTimeLeftString() {
-//     const h = Math.floor(this.totalSeconds / 3600);
-//     const m = Math.floor((this.totalSeconds % 3600) / 60);
-//     const s = this.totalSeconds % 60;
-//     this.timeLeft = `${this.pad(h)}:${this.pad(m)}:${this.pad(s)}`;
-//   }
-
-//   private pad(val: number): string {
-//     return val < 10 ? `0${val}` : `${val}`;
-//   }
-// }
-
-
-
-
-
-
-
-
-////main
-// import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-// import { CommonModule } from '@angular/common';
-// import { RouterModule, Router } from '@angular/router';
-// import { HttpClient, HttpClientModule, HttpErrorResponse } from '@angular/common/http';
-// import { LucideAngularModule, Check, Fingerprint, Loader2 } from 'lucide-angular';
-// import { AuthService } from '../../core/services/auth.service';
-// import { firstValueFrom } from 'rxjs';
-// // [TASK] Import the browser authentication function
-// import { startAuthentication } from '@simplewebauthn/browser';
-
-// const API_URL = 'http://localhost:3000';
-
-// @Component({
-//   selector: 'app-step4',
-//   standalone: true,
-//   imports: [CommonModule, RouterModule, LucideAngularModule, HttpClientModule],
-//   templateUrl: './step4.component.html',
-//   styleUrls: ['./step4.component.css']
-// })
-// export class Step4Component implements OnInit, OnDestroy {
-//   readonly icons = { Check, Fingerprint, Loader2 };
-//   logoImg = '/dataSoft.svg';
-  
-//   // --- STATE ---
-//   isLoadingData = true; 
-//   userProfileImg = 'assets/images/professional_headshot_of_a_man.png'; 
-//   userName = 'User'; 
-//   employeeId: string = ''; // [NEW] To store the logged-in user's ID (dsId)
-  
-//   selectedCandidate: any = null;
-
-//   STEPS = [
-//     { id: 1, label: "Login", status: "completed" },
-//     { id: 2, label: "Your Information", status: "completed" },
-//     { id: 3, label: "Candidate Choice", status: "completed" },
-//     { id: 4, label: "Finger Verification", status: "active" },
-//     { id: 5, label: "Success Message", status: "pending" },
-//   ];
-
-//   timeLeft = "05:45:35";
-//   verificationStatus: 'idle' | 'scanning' | 'success' | 'error' = 'idle';
-//   errorMessage: string = ''; // [NEW] To hold error messages
-  
-//   private timerId: any;
-//   private totalSeconds = 0;
-
-//   constructor(
-//     private cdr: ChangeDetectorRef, 
-//     private router: Router,
-//     private http: HttpClient,
-//     private authService: AuthService
-//   ) {}
-
-//   get activeIndex(): number {
-//     return this.STEPS.findIndex((s) => s.status === "active");
-//   }
-
-//   ngOnInit() {
-//     const [h, m, s] = this.timeLeft.split(":").map(Number);
-//     this.totalSeconds = (h * 3600) + (m * 60) + s;
-//     this.startTimer();
-//     this.loadData();
-//   }
-
-//   ngOnDestroy() {
-//     if (this.timerId) clearInterval(this.timerId);
-//   }
-
-//   async loadData() {
-//     try {
-//       this.isLoadingData = true;
-//       const candidateId = sessionStorage.getItem('voteCandidateId');
-      
-//       if (!candidateId) {
-//         this.router.navigate(['/step3']);
-//         return;
-//       }
-
-//       const userReq = this.http.get(`${API_URL}/api/employee/me`, { withCredentials: true });
-//       const candidatesReq = this.http.get(`${API_URL}/api/candidates`, { withCredentials: true });
-
-//       const [userData, candidatesData]: [any, any] = await Promise.all([
-//         firstValueFrom(userReq),
-//         firstValueFrom(candidatesReq)
-//       ]);
-
-//       if (userData) {
-//         if (userData.name) this.userName = userData.name;
-//         if (userData.photoUrl) this.userProfileImg = userData.photoUrl;
-        
-//         // Check dsId first, then employeeId, then id. Ensure it's a string.
-//         this.employeeId = (userData.dsId || userData.employeeId || userData.id || '').toString();
-        
-//         console.log('Logged in User Data:', userData); // Check console to see available fields
-//         console.log('Employee ID set to:', this.employeeId);
-//       }
-
-//       this.selectedCandidate = candidatesData.find((c: any) => c.id.toString() === candidateId.toString());
-
-//       if (!this.selectedCandidate) {
-//         this.router.navigate(['/step3']);
-//       }
-
-//     } catch (error) {
-//       console.error("Error loading step 4 data", error);
-//     } finally {
-//       this.isLoadingData = false;
-//       this.cdr.detectChanges();
-//     }
-//   }
-
-//   // --- ACTIONS ---
-
-//   onChangeVote() {
-//     sessionStorage.removeItem('voteCandidateId');
-//     this.authService.setStep(3);
-//     this.router.navigate(['/step3']);
-//   }
-
-//   // [TASK] Converted React Logic to Angular
-//   async handleCastVote() {
-//     if (this.verificationStatus === 'success' || !this.selectedCandidate) return;
-    
-//     // 1. Reset State
-//     this.verificationStatus = 'scanning';
-//     this.errorMessage = '';
-//     this.cdr.detectChanges();
-
-//     try {
-//       // 2. Request Auth Options from Backend
-//       // Equivalent to: axios.post(`${API_URL}/auth/login/options`, { dsId: currentEmployee })
-//       const optionsResp = await firstValueFrom(
-//         this.http.post<any>(`${API_URL}/auth/login/options`, { dsId: this.employeeId })
-//       );
-
-//       // 3. Trigger Browser Biometric Prompt
-//       // Equivalent to: await startAuthentication(resp.data)
-//       let asseResp;
-//       try {
-//         asseResp = await startAuthentication(optionsResp);
-//       } catch (err: any) {
-//         // User cancelled or hardware failed
-//         console.error("Biometric start error", err);
-//         throw new Error("Biometric scan failed or cancelled.");
-//       }
-
-//       // 4. Verify Vote with Backend
-//       // Equivalent to: axios.post(`${API_URL}/auth/vote/verify`, ...)
-//       await firstValueFrom(
-//         this.http.post(`${API_URL}/auth/vote/verify`, {
-//           dsId: this.employeeId,
-//           body: asseResp,
-//           candidateId: this.selectedCandidate.id
-//         })
-//       );
-
-//       // 5. SUCCESS: Show Green Finger & Redirect
-//       this.verificationStatus = 'success';
-//       this.cdr.detectChanges();
-
-//       // [NEW] Prepare Receipt Data for Step 5
-//       const receiptData = {
-//         voterName: this.userName,
-//         voterId: this.employeeId,
-//         candidateName: this.selectedCandidate.name,
-//         candidateDept: this.selectedCandidate.department || 'General',
-//         timestamp: new Date().toLocaleString(), // Current date/time
-//         electionDate: '15 December 2025'
-//       };
-      
-//       // Save to session storage
-//       sessionStorage.setItem('voteReceipt', JSON.stringify(receiptData));
-
-//       setTimeout(() => {
-//          this.authService.completeStep(4);
-//          this.router.navigate(['/step5']);
-//       }, 2000);
-
-//     } catch (error: any) {
-//       // 6. FAIL: Show Red Finger & Error Message
-//       this.verificationStatus = 'error';
-      
-//       // Extract error message safely
-//       if (error instanceof HttpErrorResponse) {
-//         this.errorMessage = error.error?.error || "Verification server error.";
-//       } else {
-//         this.errorMessage = error.message || "Verification failed.";
-//       }
-      
-//       console.error("Vote failed:", error);
-//       this.cdr.detectChanges();
-//     }
-//   }
-
-//   // --- TIMER ---
-//   startTimer() {
-//     this.timerId = setInterval(() => {
-//       if (this.totalSeconds > 0) {
-//         this.totalSeconds--;
-//         this.updateTimeLeftString();
-//         this.cdr.detectChanges();
-//       } else {
-//         clearInterval(this.timerId);
-//       }
-//     }, 1000);
-//   }
-
-//   private updateTimeLeftString() {
-//     const h = Math.floor(this.totalSeconds / 3600);
-//     const m = Math.floor((this.totalSeconds % 3600) / 60);
-//     const s = this.totalSeconds % 60;
-//     this.timeLeft = `${this.pad(h)}:${this.pad(m)}:${this.pad(s)}`;
-//   }
-
-//   private pad(val: number): string {
-//     return val < 10 ? `0${val}` : `${val}`;
-//   }
-// }
-
-
-
-
-

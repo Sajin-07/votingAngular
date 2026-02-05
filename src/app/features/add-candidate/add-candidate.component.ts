@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import Swal from 'sweetalert2'; // Import SweetAlert2
 
 interface CustomField {
   _id: string;
@@ -29,13 +30,13 @@ export class AddCandidateComponent implements OnInit {
   
   // Photo Upload
   selectedPhoto: File | null = null;
+  selectedFileName: string = ''; // To show file name
   photoPreview: string | null = null;
   
   // State
   isLoading = false;
+  statusText = 'Processing...'; // Dynamic loading text
   isLoadingFields = true;
-  errorMessage = '';
-  successMessage = '';
 
   // Image Hosting Config
   private IMAGE_HOSTING_KEY = '49c34f91f4f7457f0cb17f358b9e8b40';
@@ -59,14 +60,12 @@ export class AddCandidateComponent implements OnInit {
       next: (response) => {
         this.customFields = response.fields || [];
         this.isLoadingFields = false;
-        this.cdr.detectChanges(); // Force change detection
-        console.log('✅ Loaded custom fields:', this.customFields);
+        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Failed to load custom fields:', error);
-        this.errorMessage = 'Failed to load form configuration';
         this.isLoadingFields = false;
-        this.cdr.detectChanges();
+        Swal.fire('Error', 'Failed to load form configuration', 'error');
       }
     });
   }
@@ -75,33 +74,41 @@ export class AddCandidateComponent implements OnInit {
     const file = event.target.files[0];
     if (file) {
       this.selectedPhoto = file;
+      this.selectedFileName = file.name;
       
       // Create preview
       const reader = new FileReader();
       reader.onload = (e: any) => {
         this.photoPreview = e.target.result;
+        this.cdr.detectChanges(); // Fix: Force UI update immediately after loading
       };
       reader.readAsDataURL(file);
     }
   }
 
-  async onSubmit() {
-    this.errorMessage = '';
-    this.successMessage = '';
+  removePhoto() {
+    this.selectedPhoto = null;
+    this.selectedFileName = '';
+    this.photoPreview = null;
+  }
 
-    // Validation: Candidate ID is mandatory
+  async onSubmit() {
+    // Validation
     if (!this.candidateId.trim()) {
-      this.errorMessage = 'Candidate ID is required';
+      Swal.fire('Warning', 'Candidate ID is required', 'warning');
       return;
     }
 
     this.isLoading = true;
+    this.statusText = 'Starting submission...';
 
     try {
-      // Step 1: Upload Photo (if selected)
       let photoUrl = '';
+
+      // Step 1: Upload Photo (if selected)
       if (this.selectedPhoto) {
-        console.log('Uploading photo...');
+        this.statusText = `Uploading ${this.selectedFileName}...`;
+        
         const imageFormData = new FormData();
         imageFormData.append('image', this.selectedPhoto);
         
@@ -111,21 +118,17 @@ export class AddCandidateComponent implements OnInit {
         
         photoUrl = imgResponse?.data?.url;
         if (!photoUrl) throw new Error('Image upload failed');
-        
-        console.log('Photo uploaded:', photoUrl);
       }
 
-      // Step 2: Build candidate data object
+      // Step 2: Build candidate data
+      this.statusText = 'Saving candidate data...';
       const candidateData: any = {
         candidateId: this.candidateId.trim()
       };
 
-      // Add photo URL if uploaded
-      if (photoUrl) {
-        candidateData.photoUrl = photoUrl;
-      }
+      if (photoUrl) candidateData.photoUrl = photoUrl;
 
-      // Add all custom field values
+      // Add custom fields
       this.customFields.forEach(field => {
         const value = this.customFieldValues[field.fieldName];
         if (value && value.trim()) {
@@ -133,28 +136,32 @@ export class AddCandidateComponent implements OnInit {
         }
       });
 
-      console.log('Submitting candidate data:', candidateData);
-
       // Step 3: Submit to backend
-      const response: any = await firstValueFrom(
+      await firstValueFrom(
         this.http.post('http://localhost:3000/api/candidates/add', candidateData, {
           withCredentials: true
         })
       );
 
-      this.successMessage = 'Candidate added successfully!';
       this.isLoading = false;
 
-      // Reset form
-      setTimeout(() => {
-        this.resetForm();
-        this.router.navigate(['/org-dashboard']);
-      }, 2000);
+      // Success Alert
+      Swal.fire({
+        title: 'Success!',
+        text: 'Candidate added successfully.',
+        icon: 'success',
+        confirmButtonColor: '#10B981', // Emerald-500
+        confirmButtonText: 'Add Another'
+      });
+
+      // Reset form and stay on page
+      this.resetForm();
 
     } catch (error: any) {
       console.error('Add candidate error:', error);
-      this.errorMessage = error.error?.error || error.message || 'Failed to add candidate';
       this.isLoading = false;
+      const msg = error.error?.error || error.message || 'Failed to add candidate';
+      Swal.fire('Error', msg, 'error');
     }
   }
 
@@ -162,7 +169,9 @@ export class AddCandidateComponent implements OnInit {
     this.candidateId = '';
     this.customFieldValues = {};
     this.selectedPhoto = null;
+    this.selectedFileName = '';
     this.photoPreview = null;
+    this.cdr.detectChanges();
   }
 
   goBack() {
@@ -171,7 +180,7 @@ export class AddCandidateComponent implements OnInit {
 }
 
 
-// import { Component, OnInit } from '@angular/core';
+// import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 // import { CommonModule } from '@angular/common';
 // import { FormsModule } from '@angular/forms';
 // import { HttpClient } from '@angular/common/http';
@@ -206,6 +215,7 @@ export class AddCandidateComponent implements OnInit {
   
 //   // State
 //   isLoading = false;
+//   isLoadingFields = true;
 //   errorMessage = '';
 //   successMessage = '';
 
@@ -215,7 +225,8 @@ export class AddCandidateComponent implements OnInit {
 
 //   constructor(
 //     private http: HttpClient,
-//     private router: Router
+//     private router: Router,
+//     private cdr: ChangeDetectorRef
 //   ) {}
 
 //   ngOnInit() {
@@ -223,16 +234,21 @@ export class AddCandidateComponent implements OnInit {
 //   }
 
 //   loadCustomFields() {
+//     this.isLoadingFields = true;
 //     this.http.get<any>('http://localhost:3000/api/settings/candidate-fields', {
 //       withCredentials: true
 //     }).subscribe({
 //       next: (response) => {
 //         this.customFields = response.fields || [];
-//         console.log('Loaded custom fields:', this.customFields);
+//         this.isLoadingFields = false;
+//         this.cdr.detectChanges(); // Force change detection
+//         console.log('✅ Loaded custom fields:', this.customFields);
 //       },
 //       error: (error) => {
 //         console.error('Failed to load custom fields:', error);
 //         this.errorMessage = 'Failed to load form configuration';
+//         this.isLoadingFields = false;
+//         this.cdr.detectChanges();
 //       }
 //     });
 //   }

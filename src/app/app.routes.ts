@@ -3,17 +3,21 @@ import { votingGuard } from './core/guards/voting.guard';
 import { adminGuard } from './core/guards/admin.guard'; 
 import { orgAdminGuard, moderatorGuard, orgUserGuard} from './core/guards/auth-guard';
 import { VoterAuthGuard } from './core/guards/voter-auth.guard';
+import { LandingComponent } from './features/landing/landing.component';
 
 
 export const routes: Routes = [
+  { 
+    path: '', component: LandingComponent 
+  },
   {
-    path: '',
+    path: 'home',
     loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent)
   },
   {
     path: 'step1', // Login Page
-    loadComponent: () => import('./features/step1/step1.component').then(m => m.Step1Component),
-    canActivate: [votingGuard] // Guard checks if already logged in
+    loadComponent: () => import('./features/step1/step1.component').then(m => m.Step1Component)
+    // canActivate: [votingGuard] // Guard checks if already logged in
   },
   {
     path: 'step2',
@@ -25,16 +29,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/step3/step3.component').then(m => m.Step3Component)
     // canActivate: [votingGuard]
   },
-  {
+   {
     path: 'step4',
     loadComponent: () => import('./features/step4/step4.component').then(m => m.Step4Component)
     // canActivate: [votingGuard]
   },
-  {
-    path: 'step5',
-    loadComponent: () => import('./features/step5/step5.component').then(m => m.Step5Component)
-    // canActivate: [votingGuard]
-  },
+
    {
     path: 'vote-result',
     loadComponent: () => import('./features/vote-result/vote-result.component').then(m => m.VoteResultComponent),

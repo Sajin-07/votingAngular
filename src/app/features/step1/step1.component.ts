@@ -1,101 +1,81 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { LucideAngularModule, Check, User, IdCard, Loader2, AlertCircle } from 'lucide-angular';
 import { Router, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { AuthService } from '../../core/services/auth.service';
+import { LucideAngularModule, User, IdCard, Loader2, AlertCircle, Camera } from 'lucide-angular';
+
+// --- Shared Components ---
+import { HeaderComponent } from '../../shared/components/header/header.component'; 
+import { StepperComponent } from '../../shared/components/stepper/stepper.component';
 
 const API_URL = 'http://localhost:3000';
 
 @Component({
   selector: 'app-step1',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, RouterModule, HttpClientModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    LucideAngularModule, 
+    RouterModule, 
+    HttpClientModule,
+    HeaderComponent,
+    StepperComponent
+  ],
   templateUrl: './step1.component.html',
-  styleUrls: ['./step1.component.css']
+  styleUrls: [] // removed css file as we use tailwind
 })
-export class Step1Component implements OnInit, OnDestroy {
-  // --- ASSETS & ICONS ---
-  readonly icons = { Check, User, IdCard, Loader2, AlertCircle };
-  logoImg = '/dataSoft.svg';
+export class Step1Component {
+  // Added 'Camera' to icons
+  readonly icons = { User, IdCard, Loader2, AlertCircle, Camera };
 
-  // --- STATE ---
   employeeId = '';
   isLoading = false;
   errorMessage = '';
 
-  timeLeft = "05:45:35";
-  private timerId: any;
-  private totalSeconds = 0;
-
-  // --- STEPPER CONFIG ---
-  STEPS = [
-    { id: 1, label: "Scan QR Code", status: "active" },
-    { id: 2, label: "Your Information", status: "pending" },
-    { id: 3, label: "Candidate Choice", status: "pending" },
-    { id: 4, label: "Finger Verification", status: "pending" },
-    { id: 5, label: "Success Message", status: "pending" },
-  ];
-
   constructor(
     private cdr: ChangeDetectorRef,
     private http: HttpClient,
-    private router: Router,
-    private authService: AuthService // INJECTED AUTH SERVICE
+    private router: Router
   ) {}
 
-  ngOnInit() {
-    // Initialize Timer
-    const [h, m, s] = this.timeLeft.split(":").map(Number);
-    this.totalSeconds = (h * 3600) + (m * 60) + s;
-    this.startTimer();
+  // --- Logic ---
+
+  // Mock function to simulate opening camera/scanning
+  openCamera() {
+    console.log('Opening Camera...');
+    // Here you would typically trigger your QR Scanner library (e.g. ngx-scanner)
+    // For now, we can just simulate a successful scan for demonstration if needed,
+    // or just leave it as a UI trigger.
+    
+    // Example: Simulate a scan after 1 second
+    // this.onScanSuccess('DS00615'); 
   }
 
-  ngOnDestroy() {
-    if (this.timerId) clearInterval(this.timerId);
-  }
-
-  // --- 1. VALIDATION LOGIC ---
-  get isValidId(): boolean {
-    if (!this.employeeId) return false;
-    const regex = /^(DS|INT)\d{5}$/i;
-    return regex.test(this.employeeId);
-  }
-
-  onIdInput(value: string) {
-    this.employeeId = value.toUpperCase();
-    this.errorMessage = '';
-  }
-
-  // --- 2. AUTH LOGIC (JWT COOKIE) ---
-  async verifyId() {
-    if (!this.isValidId || this.isLoading) return;
+  // Existing logic kept for reference or integration with QR scanner result
+  async verifyId(scannedId?: string) {
+    const idToVerify = scannedId || this.employeeId;
+    
+    if (!idToVerify || this.isLoading) return;
 
     this.isLoading = true;
     this.errorMessage = '';
 
     try {
-      // API CALL: POST to Login
       await firstValueFrom(
         this.http.post(
           `${API_URL}/api/auth/login`,
-          { dsId: this.employeeId },
+          { dsId: idToVerify },
           { withCredentials: true }
         )
       );
 
-      // --- SUCCESS ---
-      // 1. Tell Service we are moving to Step 2 (Unlocks Step 2 Guard)
-      this.authService.completeStep(1);
-
-      // 2. Navigate
       this.router.navigate(['/step2']);
 
     } catch (error: any) {
       console.error('Login Error:', error);
-
       if (error.status === 401 || error.status === 404) {
         this.errorMessage = 'ID not found in blockchain records.';
       } else {
@@ -106,46 +86,19 @@ export class Step1Component implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     }
   }
-
-  // --- TIMER LOGIC ---
-  startTimer() {
-    this.timerId = setInterval(() => {
-      if (this.totalSeconds > 0) {
-        this.totalSeconds--;
-        this.updateTimeLeftString();
-        this.cdr.detectChanges();
-      } else {
-        clearInterval(this.timerId);
-      }
-    }, 1000);
-  }
-
-  private updateTimeLeftString() {
-    const h = Math.floor(this.totalSeconds / 3600);
-    const m = Math.floor((this.totalSeconds % 3600) / 60);
-    const s = this.totalSeconds % 60;
-    this.timeLeft = `${this.pad(h)}:${this.pad(m)}:${this.pad(s)}`;
-  }
-
-  private pad(val: number): string {
-    return val < 10 ? `0${val}` : `${val}`;
-  }
-
-  get activeIndex(): number {
-    return this.STEPS.findIndex((s) => s.status === "active");
-  }
 }
+
 
 // import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 // import { CommonModule } from '@angular/common';
 // import { FormsModule } from '@angular/forms';
-// import { HttpClient, HttpClientModule } from '@angular/common/http'; // Added HttpClient
+// import { HttpClient, HttpClientModule } from '@angular/common/http';
 // import { LucideAngularModule, Check, User, IdCard, Loader2, AlertCircle } from 'lucide-angular';
 // import { Router, RouterModule } from '@angular/router';
 // import { firstValueFrom } from 'rxjs';
+// import { AuthService } from '../../core/services/auth.service';
 
-// // Configure your API URL here
-// const API_URL = 'http://localhost:3000'; 
+// const API_URL = 'http://localhost:3000';
 
 // @Component({
 //   selector: 'app-step1',
@@ -157,20 +110,20 @@ export class Step1Component implements OnInit, OnDestroy {
 // export class Step1Component implements OnInit, OnDestroy {
 //   // --- ASSETS & ICONS ---
 //   readonly icons = { Check, User, IdCard, Loader2, AlertCircle };
-//   logoImg = '/dataSoft.svg'; 
+//   logoImg = '/dataSoft.svg';
 
 //   // --- STATE ---
 //   employeeId = '';
 //   isLoading = false;
 //   errorMessage = '';
-  
+
 //   timeLeft = "05:45:35";
 //   private timerId: any;
 //   private totalSeconds = 0;
 
 //   // --- STEPPER CONFIG ---
 //   STEPS = [
-//     { id: 1, label: "Login", status: "active" },
+//     { id: 1, label: "Scan QR Code", status: "active" },
 //     { id: 2, label: "Your Information", status: "pending" },
 //     { id: 3, label: "Candidate Choice", status: "pending" },
 //     { id: 4, label: "Finger Verification", status: "pending" },
@@ -180,7 +133,8 @@ export class Step1Component implements OnInit, OnDestroy {
 //   constructor(
 //     private cdr: ChangeDetectorRef,
 //     private http: HttpClient,
-//     private router: Router
+//     private router: Router,
+//     private authService: AuthService // INJECTED AUTH SERVICE
 //   ) {}
 
 //   ngOnInit() {
@@ -195,20 +149,18 @@ export class Step1Component implements OnInit, OnDestroy {
 //   }
 
 //   // --- 1. VALIDATION LOGIC ---
-//   // Returns true if ID starts with DS or INT (case insensitive) followed by 5 digits
 //   get isValidId(): boolean {
 //     if (!this.employeeId) return false;
-//     const regex = /^(DS|INT)\d{5}$/i; 
+//     const regex = /^(DS|INT)\d{5}$/i;
 //     return regex.test(this.employeeId);
 //   }
 
-//   // Force uppercase while typing
 //   onIdInput(value: string) {
 //     this.employeeId = value.toUpperCase();
-//     this.errorMessage = ''; // Clear error when user types
+//     this.errorMessage = '';
 //   }
 
-//   // --- 2. VERIFY LOGIC ---
+//   // --- 2. AUTH LOGIC (JWT COOKIE) ---
 //   async verifyId() {
 //     if (!this.isValidId || this.isLoading) return;
 
@@ -216,31 +168,29 @@ export class Step1Component implements OnInit, OnDestroy {
 //     this.errorMessage = '';
 
 //     try {
-//       // API CALL: Check if employee exists in blockchain
-//       // Adjust endpoint to match your backend (e.g., /auth/check/:id or /employees/:id)
-//       const response: any = await firstValueFrom(
-//         this.http.get(`${API_URL}/auth/check/${this.employeeId}`)
+//       // API CALL: POST to Login
+//       await firstValueFrom(
+//         this.http.post(
+//           `${API_URL}/api/auth/login`,
+//           { dsId: this.employeeId },
+//           { withCredentials: true }
+//         )
 //       );
 
-//       // Logic: If API returns { exists: true } or user data, we proceed
-//       // If your API throws 404 when not found, the catch block handles it.
-//       if (response && response.exists) {
-//         // Store ID for next steps (optional: use a Service for state sharing)
-//         localStorage.setItem('currentVoterId', this.employeeId);
-        
-//         // Navigate to Step 2
-//         this.router.navigate(['/step2']);
-//       } else {
-//         this.errorMessage = 'ID not found in blockchain records.';
-//       }
+//       // --- SUCCESS ---
+//       // 1. Tell Service we are moving to Step 2 (Unlocks Step 2 Guard)
+//       this.authService.completeStep(1);
+
+//       // 2. Navigate
+//       this.router.navigate(['/step2']);
 
 //     } catch (error: any) {
-//       console.error(error);
-//       // Handle 404 or other errors
-//       if (error.status === 404 || (error.error && !error.error.exists)) {
-//         this.errorMessage = 'Employee ID not found.';
+//       console.error('Login Error:', error);
+
+//       if (error.status === 401 || error.status === 404) {
+//         this.errorMessage = 'ID not found in blockchain records.';
 //       } else {
-//         this.errorMessage = '⚠️ Connection error. Please try again.';
+//         this.errorMessage = 'Connection error. Please try again.';
 //       }
 //     } finally {
 //       this.isLoading = false;
@@ -254,7 +204,7 @@ export class Step1Component implements OnInit, OnDestroy {
 //       if (this.totalSeconds > 0) {
 //         this.totalSeconds--;
 //         this.updateTimeLeftString();
-//         this.cdr.detectChanges(); 
+//         this.cdr.detectChanges();
 //       } else {
 //         clearInterval(this.timerId);
 //       }
@@ -271,8 +221,7 @@ export class Step1Component implements OnInit, OnDestroy {
 //   private pad(val: number): string {
 //     return val < 10 ? `0${val}` : `${val}`;
 //   }
-  
-//   // Progress bar helper
+
 //   get activeIndex(): number {
 //     return this.STEPS.findIndex((s) => s.status === "active");
 //   }

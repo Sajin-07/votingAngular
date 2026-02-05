@@ -1,4 +1,407 @@
-<div
+<!-- <div
+  class="min-h-screen text-white p-6 md:p-12 flex flex-col font-inter"
+  [style.background]="'radial-gradient(circle at center, #535056 0%, #25242D 70%)'"
+>
+  <div class="max-w-7xl mx-auto w-full flex flex-col h-full">
+    
+    
+
+    <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-6 max-w-5xl mx-auto w-full mt-10 mb-10 font-inter">
+        
+        <div *ngIf="isLoading" class="md:col-span-12 flex items-center justify-center h-[312px]">
+            <div class="flex flex-col items-center gap-2">
+                <lucide-icon [img]="icons.Loader2" class="w-10 h-10 text-[#529F2D] animate-spin"></lucide-icon>
+                <p class="text-[#A1A1A1]">Loading Candidates...</p>
+            </div>
+        </div>
+
+        <div *ngIf="!isLoading" class="md:col-span-7 flex flex-col gap-4 h-[350px] pr-2 custom-scrollbar overflow-y-auto">
+            <div *ngFor="let candidate of CANDIDATES"
+                 (click)="toggleCandidate(candidate.id)"
+                 class="relative group cursor-pointer rounded-lg transition-all duration-300 shrink-0 flex items-center border overflow-hidden"
+                 [class.bg-[#529F2D]]="isSelected(candidate.id)"
+                 [class.border-[#529F2D]]="isSelected(candidate.id)"
+                 [class.bg-[#2A2931]]="!isSelected(candidate.id)"
+                 [class.border-[#3E3D45]]="!isSelected(candidate.id)"
+                 [class.hover:border-[#529F2D]]="!isSelected(candidate.id)"
+            >
+                <div class="w-[130px] h-[130px] shrink-0 bg-black/20 overflow-hidden flex items-center justify-center">
+                    <img 
+                        *ngIf="candidate.photoUrl || candidate.image"
+                        [src]="candidate.photoUrl || candidate.image" 
+                        [alt]="candidate.name || candidate.candidateId"
+                        class="h-full w-full object-cover object-top"
+                    />
+                    <span *ngIf="!candidate.photoUrl && !candidate.image" class="text-xs text-white/50">No Img</span>
+                </div>
+
+                <div class="flex flex-col pl-4">
+                    <h3 class="text-[20px] font-bold text-white leading-tight">
+                        {{ candidate.name || candidate.candidateId }}
+                    </h3>
+                    <p class="text-[14px]"
+                       [class.text-white/90]="isSelected(candidate.id)"
+                       [class.text-[#A1A1A1]]="!isSelected(candidate.id)"
+                    >
+                        {{ candidate.name ? candidate.candidateId : '' }}
+                    </p>
+                </div>
+
+                <div *ngIf="isSelected(candidate.id)" class="absolute top-2 right-2 bg-white rounded-full p-1 shadow-sm">
+                    <lucide-icon [img]="icons.Check" class="w-3 h-3 text-[#529F2D]"></lucide-icon>
+                </div>
+            </div>
+        </div>
+
+        <div class="md:col-span-5">
+            <div class="h-[350px] rounded-xl bg-[#222126] border shadow-inner flex items-center justify-center p-4 text-center transition-colors duration-300 relative overflow-hidden"
+                 [class.border-[#529F2D]]="selectedCandidateIds.length > 0"
+                 [class.border-[#333]]="selectedCandidateIds.length === 0"
+            >
+                <div *ngIf="lastSelectedId; else placeholder" class="flex flex-col items-center justify-start h-full w-full animate-fadeIn overflow-y-auto custom-scrollbar pt-2">
+                    
+                    <ng-container *ngFor="let c of CANDIDATES">
+                        <ng-container *ngIf="c.id === lastSelectedId">
+                            
+                            <div class="group relative w-[130px] h-[130px] rounded-lg overflow-hidden mb-4 border-2 border-[#529F2D]/50 shrink-0 shadow-lg bg-black flex items-center justify-center">
+                                <img 
+                                    *ngIf="c.photoUrl || c.image"
+                                    [src]="c.photoUrl || c.image" 
+                                    class="w-full h-full object-cover object-top" 
+                                    alt="Selected" 
+                                />
+                                <span *ngIf="!c.photoUrl && !c.image" class="text-xs text-white/50">No Image</span>
+
+                                <button
+                                    *ngIf="c.photoUrl || c.image"
+                                    (click)="openModal(c.photoUrl || c.image)"
+                                    class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-zoom-in text-white gap-1"
+                                >
+                                    <lucide-icon [img]="icons.Maximize2" class="w-6 h-6 text-[#529F2D]"></lucide-icon>
+                                    <span class="text-xs font-bold uppercase tracking-wider">View Full</span>
+                                </button>
+                            </div>
+
+                            <h2 class="text-xl font-bold text-white leading-tight mb-1">
+                                {{ c.name || c.candidateId }}
+                            </h2>
+                            <p class="text-xs text-[#529F2D] uppercase tracking-wider mb-3">
+                                {{ c.candidateId }}
+                            </p>
+
+                            <div class="w-full text-left bg-black/20 p-3 rounded-lg space-y-2 mb-2">
+                                <div *ngFor="let detail of getDynamicDetails(c)" class="flex justify-between border-b border-white/5 pb-1 last:border-0">
+                                    <span class="text-[#A1A1A1] text-xs uppercase font-bold">{{ detail.key }}</span>
+                                    <span class="text-white text-sm font-medium text-right">{{ detail.value }}</span>
+                                </div>
+                                <div *ngIf="getDynamicDetails(c).length === 0" class="text-center text-[#A1A1A1] text-sm italic">
+                                    No additional details.
+                                </div>
+                            </div>
+                            
+                            <div class="mt-auto py-2 px-4 rounded-full bg-[#529F2D]/20 text-[#529F2D] text-xs font-bold border border-[#529F2D]/30">
+                                Selected: {{ selectedCandidateIds.length }} / 3
+                            </div>
+
+                        </ng-container>
+                    </ng-container>
+
+                </div>
+
+                <ng-template #placeholder>
+                    <div class="flex flex-col items-center gap-5">
+                        <img [src]="handVector" alt="Select" class="w-[100px] opacity-50" />
+                        <p class="text-white/50 text-sm max-w-[220px]">
+                            Tap candidates from the list to select them.<br/>
+                            <span class="text-[#529F2D]">Select 1 to 3 candidates.</span>
+                        </p>
+                    </div>
+                </ng-template>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="flex flex-col-reverse md:flex-row justify-between max-w-5xl mx-auto w-full px-4 gap-4 mt-auto">
+      
+      <button 
+        (click)="cancelVote()" 
+        [disabled]="isVoting"
+        [class.opacity-50]="isVoting"
+        class="h-[60px] w-full md:w-[200px] uppercase font-semibold text-[18px] bg-gradient-to-r from-[#444249] to-[#222126] border-0 ring-0 outline-none shadow-md transition-all duration-200 hover:shadow-lg hover:from-[#4f4c55] hover:to-[#2a2830] active:scale-95 cursor-pointer rounded-lg text-white"
+      >
+        Cancel Vote
+      </button>
+     
+      <button 
+        (click)="castVote()" 
+        [disabled]="selectedCandidateIds.length === 0 || isLoading || isVoting" 
+        [class.opacity-50]="selectedCandidateIds.length === 0 || isLoading || isVoting" 
+        [class.cursor-not-allowed]="selectedCandidateIds.length === 0 || isLoading || isVoting" 
+        class="h-[60px] w-full md:w-[200px] flex items-center justify-center uppercase font-semibold text-[18px] bg-gradient-to-r from-[#529F2D] to-[#1D3910] border-0 ring-0 outline-none shadow-md transition-all duration-200 hover:shadow-[0_8px_24px_rgba(82,159,45,0.45)] hover:from-[#5fb834] hover:to-[#234715] active:scale-95 cursor-pointer rounded-lg text-white"
+      >
+        <ng-container *ngIf="isVoting; else btnText">
+           <lucide-icon [img]="icons.Loader2" class="w-6 h-6 animate-spin mr-2"></lucide-icon>
+           Casting...
+        </ng-container>
+        <ng-template #btnText>
+           {{ selectedCandidateIds.length > 0 ? "Cast " + selectedCandidateIds.length + " Vote(s)" : "Select Candidates" }}
+        </ng-template>
+      </button>
+    </div>
+
+  </div>
+
+  <div *ngIf="modalImage" class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 animate-fadeIn">
+      <div class="relative max-w-4xl max-h-[90vh] w-full flex flex-col items-center">
+          
+          <button (click)="closeModal()" class="absolute -top-12 right-0 md:right-0 p-2 text-white hover:text-[#529F2D] transition-colors">
+              <lucide-icon [img]="icons.X" class="w-8 h-8"></lucide-icon>
+          </button>
+
+          <img [src]="modalImage" class="w-auto h-auto max-h-[85vh] max-w-full rounded-lg shadow-2xl border-2 border-[#333] animate-zoomIn" alt="Full View">
+      </div>
+      
+      <div class="absolute inset-0 -z-10" (click)="closeModal()"></div>
+  </div>
+
+</div>
+ -->
+
+<!-- <div
+  class="min-h-screen text-white p-6 md:p-12 flex flex-col font-inter"
+  [style.background]="'radial-gradient(circle at center, #535056 0%, #25242D 70%)'"
+>
+  <div class="max-w-7xl mx-auto w-full flex flex-col h-full">
+    
+    <header class="flex flex-col md:flex-row justify-between items-center md:items-start mb-10 gap-6 mt-4">
+      <div class="flex flex-col items-center md:items-start text-center md:text-left">
+        <h1 class="uppercase text-2xl md:text-[28px] mb-4 font-bold tracking-tight">
+          DATASOFT POPULARITY CONTEST
+        </h1>
+        <div class="flex flex-col sm:flex-row gap-2 md:gap-8 text-base md:text-[18px]">
+          <p class="text-[#A1A1A1]">
+            Vote Ends In
+            <span class="ml-1 text-white font-inter font-bold">{{ timeLeft }}</span>
+          </p>
+          <p class="text-[#A1A1A1]">
+            Date
+            <span class="ml-1 text-white font-bold">{{ currentDate }}</span>
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4 mt-2 md:mt-0">
+        <p class="text-base md:text-[18px] text-[#A1A1A1]">Powered by</p>
+        <img [src]="logoImg" alt="DataSoft" class="h-8 md:h-10" />
+      </div>
+    </header>
+
+    <div class="mb-6 hidden md:block w-full max-w-6xl mx-auto px-4">
+      <div class="relative">
+        <div class="absolute top-[52px] left-24 right-24 h-[4px] bg-white/60"></div>
+        <div
+          class="absolute top-[52px] left-24 h-[4px] bg-[#529F2D] transition-all duration-500"
+          [style.width]="(activeIndex / (STEPS.length - 1)) * 85 + '%'"
+        ></div>
+        <div class="flex justify-between relative z-10">
+          <div *ngFor="let step of STEPS" class="flex flex-col items-center gap-3 min-w-[140px]">
+            <span class="text-[16px]" [class]="step.status !== 'pending' ? 'text-[#529F2D]' : 'text-[#707070]'">
+              Step {{ step.id }}
+            </span>
+            <div
+              class="w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors duration-300"
+              [class.bg-[#529F2D]]="step.status === 'completed'"
+              [class.border-[#529F2D]]="step.status === 'completed'"
+              [class.bg-white]="step.status === 'active'"
+              [class.border-white]="step.status === 'active'"
+              [class.bg-[#A1A1A1]]="step.status === 'pending'"
+              [class.border-[#A1A1A1]]="step.status === 'pending'"
+            >
+              <lucide-icon *ngIf="step.status === 'completed'" [img]="icons.Check" class="w-6 h-6 text-white"></lucide-icon>
+              <span *ngIf="step.status !== 'completed'" 
+                    [class.text-[#222]]="step.status === 'active'"
+                    [class.text-white]="step.status === 'pending'"
+                    class="font-bold text-sm">{{ step.id }}</span>
+            </div>
+            <span class="text-[14px] font-semibold"
+              [class.text-[#529F2D]]="step.status === 'completed'"
+              [class.text-white]="step.status === 'active'"
+              [class.text-[#707070]]="step.status === 'pending'">
+              {{ step.label }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-6 max-w-5xl mx-auto w-full mt-10 mb-10 font-inter">
+        
+        <div *ngIf="isLoading" class="md:col-span-12 flex items-center justify-center h-[312px]">
+            <div class="flex flex-col items-center gap-2">
+                <lucide-icon [img]="icons.Loader2" class="w-10 h-10 text-[#529F2D] animate-spin"></lucide-icon>
+                <p class="text-[#A1A1A1]">Loading Candidates...</p>
+            </div>
+        </div>
+
+        <div *ngIf="!isLoading" class="md:col-span-7 flex flex-col gap-4 h-[350px] pr-2 custom-scrollbar overflow-y-auto">
+            <div *ngFor="let candidate of CANDIDATES"
+                 (click)="toggleCandidate(candidate.id)"
+                 class="relative group cursor-pointer rounded-lg transition-all duration-300 shrink-0 flex items-center border overflow-hidden"
+                 [class.bg-[#529F2D]]="isSelected(candidate.id)"
+                 [class.border-[#529F2D]]="isSelected(candidate.id)"
+                 [class.bg-[#2A2931]]="!isSelected(candidate.id)"
+                 [class.border-[#3E3D45]]="!isSelected(candidate.id)"
+                 [class.hover:border-[#529F2D]]="!isSelected(candidate.id)"
+            >
+                <div class="w-[130px] h-[130px] shrink-0 bg-black/20 overflow-hidden flex items-center justify-center">
+                    <img 
+                        *ngIf="candidate.photoUrl || candidate.image"
+                        [src]="candidate.photoUrl || candidate.image" 
+                        [alt]="candidate.name || candidate.candidateId"
+                        class="h-full w-full object-cover object-top"
+                    />
+                    <span *ngIf="!candidate.photoUrl && !candidate.image" class="text-xs text-white/50">No Img</span>
+                </div>
+
+                <div class="flex flex-col pl-4">
+                    <h3 class="text-[20px] font-bold text-white leading-tight">
+                        {{ candidate.name || candidate.candidateId }}
+                    </h3>
+                    <p class="text-[14px]"
+                       [class.text-white/90]="isSelected(candidate.id)"
+                       [class.text-[#A1A1A1]]="!isSelected(candidate.id)"
+                    >
+                        {{ candidate.name ? candidate.candidateId : '' }}
+                    </p>
+                </div>
+
+                <div *ngIf="isSelected(candidate.id)" class="absolute top-2 right-2 bg-white rounded-full p-1 shadow-sm">
+                    <lucide-icon [img]="icons.Check" class="w-3 h-3 text-[#529F2D]"></lucide-icon>
+                </div>
+            </div>
+        </div>
+
+        <div class="md:col-span-5">
+            <div class="h-[350px] rounded-xl bg-[#222126] border shadow-inner flex items-center justify-center p-4 text-center transition-colors duration-300 relative overflow-hidden"
+                 [class.border-[#529F2D]]="selectedCandidateIds.length > 0"
+                 [class.border-[#333]]="selectedCandidateIds.length === 0"
+            >
+                <div *ngIf="lastSelectedId; else placeholder" class="flex flex-col items-center justify-start h-full w-full animate-fadeIn overflow-y-auto custom-scrollbar pt-2">
+                    
+                    <ng-container *ngFor="let c of CANDIDATES">
+                        <ng-container *ngIf="c.id === lastSelectedId">
+                            
+                            <div class="group relative w-[130px] h-[130px] rounded-lg overflow-hidden mb-4 border-2 border-[#529F2D]/50 shrink-0 shadow-lg bg-black flex items-center justify-center">
+                                <img 
+                                    *ngIf="c.photoUrl || c.image"
+                                    [src]="c.photoUrl || c.image" 
+                                    class="w-full h-full object-cover object-top" 
+                                    alt="Selected" 
+                                />
+                                <span *ngIf="!c.photoUrl && !c.image" class="text-xs text-white/50">No Image</span>
+
+                                <button
+                                    *ngIf="c.photoUrl || c.image"
+                                    (click)="openModal(c.photoUrl || c.image)"
+                                    class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-zoom-in text-white gap-1"
+                                >
+                                    <lucide-icon [img]="icons.Maximize2" class="w-6 h-6 text-[#529F2D]"></lucide-icon>
+                                    <span class="text-xs font-bold uppercase tracking-wider">View Full</span>
+                                </button>
+                            </div>
+
+                            <h2 class="text-xl font-bold text-white leading-tight mb-1">
+                                {{ c.name || c.candidateId }}
+                            </h2>
+                            <p class="text-xs text-[#529F2D] uppercase tracking-wider mb-3">
+                                {{ c.candidateId }}
+                            </p>
+
+                            <div class="w-full text-left bg-black/20 p-3 rounded-lg space-y-2 mb-2">
+                                <div *ngFor="let detail of getDynamicDetails(c)" class="flex justify-between border-b border-white/5 pb-1 last:border-0">
+                                    <span class="text-[#A1A1A1] text-xs uppercase font-bold">{{ detail.key }}</span>
+                                    <span class="text-white text-sm font-medium text-right">{{ detail.value }}</span>
+                                </div>
+                                <div *ngIf="getDynamicDetails(c).length === 0" class="text-center text-[#A1A1A1] text-sm italic">
+                                    No additional details.
+                                </div>
+                            </div>
+                            
+                            <div class="mt-auto py-2 px-4 rounded-full bg-[#529F2D]/20 text-[#529F2D] text-xs font-bold border border-[#529F2D]/30">
+                                Selected: {{ selectedCandidateIds.length }} / 3
+                            </div>
+
+                        </ng-container>
+                    </ng-container>
+
+                </div>
+
+                <ng-template #placeholder>
+                    <div class="flex flex-col items-center gap-5">
+                        <img [src]="handVector" alt="Select" class="w-[100px] opacity-50" />
+                        <p class="text-white/50 text-sm max-w-[220px]">
+                            Tap candidates from the list to select them.<br/>
+                            <span class="text-[#529F2D]">Select 1 to 3 candidates.</span>
+                        </p>
+                    </div>
+                </ng-template>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="flex flex-col-reverse md:flex-row justify-between max-w-5xl mx-auto w-full px-4 gap-4 mt-auto">
+      
+      <button 
+        (click)="cancelVote()" 
+        [disabled]="isVoting"
+        [class.opacity-50]="isVoting"
+        class="h-[60px] w-full md:w-[200px] uppercase font-semibold text-[18px] bg-gradient-to-r from-[#444249] to-[#222126] border-0 ring-0 outline-none shadow-md transition-all duration-200 hover:shadow-lg hover:from-[#4f4c55] hover:to-[#2a2830] active:scale-95 cursor-pointer rounded-lg text-white"
+      >
+        Cancel Vote
+      </button>
+     
+      <button 
+        (click)="castVote()" 
+        [disabled]="selectedCandidateIds.length === 0 || isLoading || isVoting" 
+        [class.opacity-50]="selectedCandidateIds.length === 0 || isLoading || isVoting" 
+        [class.cursor-not-allowed]="selectedCandidateIds.length === 0 || isLoading || isVoting" 
+        class="h-[60px] w-full md:w-[200px] flex items-center justify-center uppercase font-semibold text-[18px] bg-gradient-to-r from-[#529F2D] to-[#1D3910] border-0 ring-0 outline-none shadow-md transition-all duration-200 hover:shadow-[0_8px_24px_rgba(82,159,45,0.45)] hover:from-[#5fb834] hover:to-[#234715] active:scale-95 cursor-pointer rounded-lg text-white"
+      >
+        <ng-container *ngIf="isVoting; else btnText">
+           <lucide-icon [img]="icons.Loader2" class="w-6 h-6 animate-spin mr-2"></lucide-icon>
+           Casting...
+        </ng-container>
+        <ng-template #btnText>
+           {{ selectedCandidateIds.length > 0 ? "Cast " + selectedCandidateIds.length + " Vote(s)" : "Select Candidates" }}
+        </ng-template>
+      </button>
+    </div>
+
+  </div>
+
+  <div *ngIf="modalImage" class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 animate-fadeIn">
+      <div class="relative max-w-4xl max-h-[90vh] w-full flex flex-col items-center">
+          
+          <button (click)="closeModal()" class="absolute -top-12 right-0 md:right-0 p-2 text-white hover:text-[#529F2D] transition-colors">
+              <lucide-icon [img]="icons.X" class="w-8 h-8"></lucide-icon>
+          </button>
+
+          <img [src]="modalImage" class="w-auto h-auto max-h-[85vh] max-w-full rounded-lg shadow-2xl border-2 border-[#333] animate-zoomIn" alt="Full View">
+      </div>
+      
+      <div class="absolute inset-0 -z-10" (click)="closeModal()"></div>
+  </div>
+
+</div> -->
+
+
+
+
+
+<!-- <div
   class="min-h-screen text-white p-6 md:p-12 flex flex-col font-inter"
   [style.background]="'radial-gradient(circle at center, #535056 0%, #25242D 70%)'"
 >
@@ -202,7 +605,7 @@
     </div>
 
   </div>
-</div>
+</div> -->
 
 
 
